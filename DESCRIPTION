@@ -1,11 +1,31 @@
 Package: moses
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Multi Objective Sequence Splitter
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors@R: c(person("Felipe", "Campelo",
+    email   = "fcampelo@gmail.com",
+    role    = c("aut", "cre")),
+    person("Francisco", "Lobo",
+    email   = "franciscolobo@gmail.com",
+    role    = c("sad")),
+    person("Elizabeth", "Wanner",
+    email   = "e.wanner1@aston.ac.uk",
+    role    = c("sad")))
+Maintainer: Felipe Campelo <fcampelo@gmail.com>
+Description: A tool for splitting sequence data (or other types of 
+             potentially imbalanced data with dependence structures) 
+             based on the simultaneous optimisation of multiple 
+             objectives, including split sizes, consistency of class 
+             balances, and within-split diversity.
+License: GPL-2
+Depends: R (>= 4.3.0)
+Imports: assertthat (>= 0.2.1),
+         pkgdown (>= 2.0.0),
+         knitr (>= 1.40.0),
+         dplyr (>= 1.1.0)
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.2.3
+URL: https://github.com/fcampelo/moses/
+BugReports: https://github.com/fcampelo/moses/issues/
+VignetteBuilder: knitr

@@ -2,3 +2,15 @@
 ^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+docs$
+^doc$
+^Meta$
+^CRAN-RELEASE$
+^results$
+^data$
+^LICENSE$
+^pkgdown
+^tmp$
+^\.github$
+^\.gitignore$
+^\.Rhistory$
