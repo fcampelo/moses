@@ -55,10 +55,11 @@ calc_biostrings_alignment <- function(X,
                          FUN = myalign,
                          ncpus = ncpus,
                          toexport = toxp,
+                         vrb = vrb,
                          SEQs = X$SEQs,
-                         SM = par.list$substitutionMatrix,
-                         type = par.list$type) %>%
-      dplyr::bind_cols() %>%
+                         pars = par.list) %>%
+      dplyr::bind_rows() %>%
+      t() %>%
       as.matrix()
   }
 

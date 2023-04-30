@@ -24,14 +24,19 @@ close_mc <- function(cl){
 }
 
 
-mypblapply <- function(X, FUN, ncpus, toexport = list(), ...){
+mypblapply <- function(X, FUN, ncpus, toexport = list(), vrb = TRUE, ...){
   cl  <- set_mc(ncpus)
 
   if(ncpus > 1 && length(toexport) > 0 && .Platform$OS.type == "windows"){
     parallel::clusterExport(cl = cl,
                             varlist = toexport)
   }
-  res <- pbapply::pblapply(cl = cl, X = X, FUN = FUN, ...)
+
+  if(vrb) {
+    res <- pbapply::pblapply(cl = cl, X = X, FUN = FUN, ...)
+  } else {
+    res <- parallel::parLapply(cl = cl, X = X, fun = FUN, ...)
+  }
 
   close_mc(cl)
   return(res)
@@ -67,14 +72,12 @@ mypb <- function(i, max_i, t0, npos){
 
 # ================================================================
 # Alignment function
-myalign <- function(i, SEQs, SM, type){
-  #utils::data(list = SM, package = "Biostrings")
-  patt <- rep(SEQs[i], times = 1 + length(SEQs) - i)
-  subj <- SEQs[i:length(SEQs)]
-  vals <- Biostrings::pairwiseAlignment(pattern = patt,
-                                        subject = subj,
-                                        substitutionMatrix = SM,
-                                        type = type,
-                                        scoreOnly = TRUE)
-  return(c(rep(NA, i - 1), vals))
+myalign <- function(i, SEQs, pars){
+  pars$pattern   <- rep(SEQs[i], times = 1 + length(SEQs) - i)
+  pars$subject   <- SEQs[i:length(SEQs)]
+  pars$scoreOnly <- TRUE
+  vals           <- do.call(Biostrings::pairwiseAlignment, args = pars)
+  vals           <- c(rep(NA, i - 1), vals)
+  names(vals) <- paste0("X", seq_along(SEQs))
+  return(vals)
 }
