@@ -2,7 +2,7 @@
 ^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-docs$
+^docs$
 ^doc$
 ^Meta$
 ^CRAN-RELEASE$
@@ -14,3 +14,4 @@ docs$
 ^\.github$
 ^\.gitignore$
 ^\.Rhistory$
+^tmp$

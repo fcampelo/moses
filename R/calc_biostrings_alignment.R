@@ -4,6 +4,22 @@
 #' normalised dissimilarity scores between all pairs of sequences in a
 #' data frame.
 #'
+#' @section Details:
+#' Parameter `par.list` should contain the list of parameters that the user
+#' wants to pass down to [Biostrings::pairwiseAlignment()]. By default,
+#' this list will be populated with:
+#'
+#' \itemize{
+#'  \item `type = "local"`
+#'  \item `substitutionMatrix = "BLOSUM62"`
+#'  \item `gapOpening = 10`
+#'  \item `gapExtension = 4`
+#' }
+#'
+#' The user can overwrite these values and add any other parameter accepted by
+#' [Biostrings::pairwiseAlignment()] _except_ ` scoreOnly` (which is always set
+#' to `TRUE`).
+#'
 #' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
 #' (containing strings with the sequences to be aligned)
 #' @param ncpus number of cores to use
@@ -14,6 +30,8 @@
 #'
 #' @return list object with two elements: `scores` (matrix of
 #' local or global alignment scores) and `diss_matrix` (dissimilarity matrix)
+#'
+#' @importFrom dplyr %>%
 
 calc_biostrings_alignment <- function(X,
                                       ncpus = 1,

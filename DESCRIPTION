@@ -24,7 +24,8 @@ Imports: assertthat (>= 0.2.1),
          knitr (>= 1.40.0),
          dplyr (>= 1.1.0),
          BiocManager (>= 1.30.20),
-         pbapply (>= 1.6.0)
+         pbapply (>= 1.6.0),
+         seqinr (>= 4.2.0)
 Suggests: Biostrings (>= 2.60.0)
 SuggestsNote:
   BioC (>= 3.0)
