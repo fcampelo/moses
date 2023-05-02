@@ -24,8 +24,7 @@
 #' }
 #'
 #' Additionally, this routine will translate the value of `ncpus`
-#' to the DIAMOND option `--threads ncpus`. Similarly, setting `vrb` to
-#' `TRUE` will be translated as option `--quiet` for DIAMOND.
+#' to the DIAMOND option `--threads ncpus`.
 #'
 #' The user can pass any desired parameters for DIAMOND, except `--outfmt`
 #' (which is always set to 6, the BLAST tabular format with
@@ -34,79 +33,174 @@
 #' "qstart", "qend", "sstart", "send", "evalue", "bitscore")
 #'
 #' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
-#' (containing strings with the sequences to be aligned)
+#' (containing strings with the sequences to be aligned). Ignored if a file
+#' path is provided in `seqfile`.
+#' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
+#' must be provided as a data frame in `X`.
 #' @param ncpus number of cores to use
 #' @param seqtype type of sequence being aligned. Accepts "aa", "dna" or "rna".
 #' @param par.list list object with parameters to be passed to
 #' DIAMOND. See `Details`.
-#' @param vrb logical flag: should progress be printed to console?
+#' @param vrb logical flag: should progress be printed to console? Note that
+#' this does not control the echoing of DIAMOND - for that, add option
+#' `"--quiet"` to `par.list`.
 #' @param diamond.path path to the folder where DIAMOND can be executed
 #' (e.g., where the executable file is located). This is also the folder where
 #' the DIAMOND files will be (temporarily) saved.
 #' @param cleanup logical flag: should files created by DIAMOND be deleted at
 #' the end?
+#' @param min.hit shortest allowed length of alignment hit.
 #'
 #' @return list object with two elements: `scores` (matrix of
 #' local or global alignment scores) and `diss_matrix` (dissimilarity matrix)
+#'
+#' @importFrom dplyr %>%
+#' @importFrom rlang .data
 
-calc_diamond_alignment <- function(X,
+calc_diamond_alignment <- function(X = NULL,
+                                   seqfile = NULL,
                                    ncpus = 1,
                                    seqtype = c("aa","dna","rna"),
                                    par.list = c("--ultra-sensitive",
                                                 "--matrix BLOSUM62",
                                                 "--gapopen 11",
                                                 "--gapextend 1",
-                                                "--block-size 0.5"),
+                                                "--block-size 0.5",
+                                                "--quiet"),
                                    diamond.path = "./",
+                                   min.hit = 8,
                                    cleanup = TRUE,
                                    vrb = TRUE){
 
   # ========================================================================
   # Sanity checks and initial definitions
-  assertthat::assert_that(is.data.frame(X),
-                          all(c("IDs", "SEQs") %in% names(X)),
+  if(is.list(par.list)) unlist(par.list)
+
+  assertthat::assert_that(is.data.frame(X) || is.null(X),
+                          is.null(X) || all(c("IDs", "SEQs") %in% names(X)),
+                          is.null(seqfile) || is.character(seqfile),
+                          is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
                           is.character(seqtype), length(seqtype) == 1,
                           seqtype %in% c("aa","dna","rna"),
-                          is.list(par.list) || is.character(par.list),
+                          is.character(par.list),
                           is.character(diamond.path), length(diamond.path) == 1,
                           dir.exists(diamond.path),
                           is.logical(cleanup), length(cleanup) == 1,
-                          is.logical(vrb), length(vrb) == 1)
+                          is.logical(vrb), length(vrb) == 1,
+                          assertthat::is.count(min.hit))
 
-  # # ========================================================================
+  par.list <- c(par.list, paste0("--threads ", ncpus))
+
   diamond.path <- gsub("\\/$", "", diamond.path)
+
+  # List of files that will be created (for later deletion if needed)
   torm <- paste0(diamond.path,
                  c("/seqs.fa",                  # sequences file
-                   "/proteins-reference"))      # database file
+                   "/proteins-reference.dmnd",  # database file
+                   "/protein-matches.tsv"))
 
-
+  # ========================================================================
+  # Run DIAMOND
 
   # Save sequences as a FASTA file
-  seqinr::write.fasta(sequences = as.list(X$SEQs),
-                      names     = X$IDs,
-                      file.out  = torm[1])
+  if(is.null(seqfile)){
+    seqinr::write.fasta(sequences = as.list(X$SEQs),
+                        names     = X$IDs,
+                        file.out  = torm[1])
+  } else {
+    file.copy(from = seqfile, to = torm[1], overwrite = TRUE)
+  }
 
-  # Build DIAMOND makedb string
+
+  # Call makedb
+  mymsg("Building DIAMOND database", vrb)
   mdbst <- paste0(diamond.path, "/diamond makedb --in ", torm[1],
-                  " -d ", torm[2])
+                  " -d ", torm[2],
+                  ifelse(any(grepl("--quiet", par.list)), " --quiet ", ""),
+                  "--threads ", ncpus)
 
-  system("diamond makedb --in ../data/proteins.fa -d ../data/diamond/proteins-reference")
+  system(mdbst)
 
+  # Call aligner
+  mymsg("Running DIAMOND aligner", vrb)
   callst <- paste0(diamond.path, "/diamond ",
-                   ifelse(seqtype == "aa", "blastp", "blastx"),
-                   )
+                   ifelse(seqtype == "aa", "blastp ", "blastx "),
+                   "-q ", torm[1], " -d ", torm[2], " -o ", torm[3], " ",
+                   paste(par.list, collapse = " "))
+
+  system(callst)
+
+  # ========================================================================
+  mymsg("Calculating dissimilarity matrix", vrb)
+  if(!file.exists(torm[3])){
+    # No alignments found.
+    scores <- as.data.frame(matrix(ncol=12, nrow=1))
+    names(scores) <- c("qseqid", "sseqid", "pident", "length",
+                       "mismatch", "gapopen", "qstart", "qend",
+                       "sstart", "send", "evalue", "bitscore")
+    scores <- scores[-1, ]
+    protIDs <- names(seqinr::read.fasta(torm[1], as.string = TRUE))
+    diss_matrix <- matrix(1, ncol = length(protIDs), nrow = length(protIDs))
+    diag(diss_matrix) <- 0
+    rownames(diss_matrix) <- colnames(diss_matrix) <- protIDs
+
+  } else {
+    scores <- read.csv(torm[3], sep = "\t",
+                       header = FALSE,
+                       stringsAsFactors = FALSE)
+    names(scores) <- c("qseqid", "sseqid", "pident", "length",
+                       "mismatch", "gapopen", "qstart", "qend",
+                       "sstart", "send", "evalue", "bitscore")
+
+    diss_matrix <- scores %>%
+      dplyr::filter(.data$length >= 8) %>%
+      dplyr::group_by(.data$qseqid, .data$sseqid) %>%
+      dplyr::arrange(dplyr::desc(.data$pident)) %>%
+      dplyr::summarise(dplyr::across(dplyr::everything(), dplyr::first),
+                       .groups = "drop") %>%
+      dplyr::mutate(diss = 1 - .data$pident / 100) %>%
+      dplyr::select(.data$qseqid, .data$sseqid, .data$diss) %>%
+      tidyr::pivot_wider(names_from = .data$sseqid,
+                         values_from = .data$diss,
+                         values_fill = NA) %>%
+      dplyr::arrange(.data$qseqid) %>%
+      as.data.frame()
+
+    rownames(diss_matrix) <- diss_matrix$qseqid
+
+    # Make the dissimilarity scores matrix
+    diss_matrix <- diss_matrix %>%
+      dplyr::select(order(colnames(diss_matrix)),
+                    -.data$qseqid)
+
+    pnames <- rownames(diss_matrix)
+
+    protIDs <- names(seqinr::read.fasta(torm[1], as.string = TRUE))
+    missing <- protIDs[which(!(protIDs %in% rownames(diss_matrix)))]
+
+    diss_matrix[(nrow(diss_matrix) + 1):(nrow(diss_matrix) + length(missing)), ] <- 1
+    diss_matrix[, (ncol(diss_matrix) + 1):(ncol(diss_matrix) + length(missing))] <- 1
+
+    diss_matrix <- as.matrix(diss_matrix)
+    diag(diss_matrix) <- 0
+
+    colnames(diss_matrix) <- c(pnames, missing)
+    rownames(diss_matrix) <- c(pnames, missing)
+    diss_matrix[is.na(diss_matrix)] <- 1
+  }
 
 
-    #
-    # if(seqtype == "aa"){
-    #   mymsg("Calculating similarities", vrb)
-    #
-    #   utils::data(list    = par.list$substitutionMatrix,
-    #               package = "Biostrings")
-    #
-    #   toxp <- list(substitution_matrix = par.list$substitutionMatrix)
-    #
+
+  #
+  # if(seqtype == "aa"){
+  #   mymsg("Calculating similarities", vrb)
+  #
+  #   utils::data(list    = par.list$substitutionMatrix,
+  #               package = "Biostrings")
+  #
+  #   toxp <- list(substitution_matrix = par.list$substitutionMatrix)
+  #
   #   scores <- mypblapply(X   = seq_along(X$SEQs),
   #                        FUN = myalign,
   #                        ncpus = ncpus,

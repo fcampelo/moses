@@ -21,7 +21,10 @@
 #' to `TRUE`).
 #'
 #' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
-#' (containing strings with the sequences to be aligned)
+#' (containing strings with the sequences to be aligned). Ignored if a file
+#' path is provided in `seqfile`.
+#' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
+#' must be provided as a data frame in `X`.
 #' @param ncpus number of cores to use
 #' @param seqtype type of sequence being aligned. Accepts "aa", "dna" or "rna".
 #' @param par.list list object with parameters to be passed to
@@ -33,7 +36,8 @@
 #'
 #' @importFrom dplyr %>%
 
-calc_biostrings_alignment <- function(X,
+calc_biostrings_alignment <- function(X = NULL,
+                                      seqfile = NULL,
                                       ncpus = 1,
                                       seqtype = c("aa","dna","rna"),
                                       par.list = list(),
@@ -41,8 +45,10 @@ calc_biostrings_alignment <- function(X,
 
   # ========================================================================
   # Sanity checks and initial definitions
-  assertthat::assert_that(is.data.frame(X),
-                          all(c("IDs", "SEQs") %in% names(X)),
+  assertthat::assert_that(is.data.frame(X) || is.null(X),
+                          is.null(X) || all(c("IDs", "SEQs") %in% names(X)),
+                          is.null(seqfile) || is.character(seqfile),
+                          is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
                           is.character(seqtype), length(seqtype) == 1,
                           seqtype %in% c("aa","dna","rna"),
@@ -58,6 +64,12 @@ calc_biostrings_alignment <- function(X,
     par.list$gapOpening <- 10
   if(!("gapExtension" %in% names(par.list)))
     par.list$gapExtension <- 4
+
+  if(!is.null(seqfile)){
+    X <- seqinr::read.fasta(seqfile, as.string = TRUE)
+    X <- data.frame(IDs = attributes(X)$name,
+                    SEQs = toupper(as.character(X)))
+  }
 
   # ========================================================================
 
