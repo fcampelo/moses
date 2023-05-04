@@ -32,6 +32,16 @@
 #' "qseqid", "sseqid", "pident", "length",  "mismatch", "gapopen",
 #' "qstart", "qend", "sstart", "send", "evalue", "bitscore")
 #'
+#' @section Dissimilarity value:
+#' The dissimilarity values returned by this function are calculated as:
+#'
+#' diss(a, b) = 1 - max(pident(a, b)) / 100,
+#'
+#' that is, they are based on the largest percent identity (as returned by
+#' DIAMOND) identified between two sequences "a" and "b". Note that only hits
+#' longer than `min.hit` are considered.
+#'
+#'
 #' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
 #' (containing strings with the sequences to be aligned). Ignored if a file
 #' path is provided in `seqfile`.
@@ -61,7 +71,7 @@ calc_diamond_alignment <- function(X = NULL,
                                    seqfile = NULL,
                                    ncpus = 1,
                                    seqtype = c("aa","dna","rna"),
-                                   par.list = c("--ultra-sensitive",
+                                   par.list = c("--sensitive",
                                                 "--matrix BLOSUM62",
                                                 "--gapopen 11",
                                                 "--gapextend 1",
@@ -190,39 +200,6 @@ calc_diamond_alignment <- function(X = NULL,
     diss_matrix[is.na(diss_matrix)] <- 1
   }
 
-
-
-  #
-  # if(seqtype == "aa"){
-  #   mymsg("Calculating similarities", vrb)
-  #
-  #   utils::data(list    = par.list$substitutionMatrix,
-  #               package = "Biostrings")
-  #
-  #   toxp <- list(substitution_matrix = par.list$substitutionMatrix)
-  #
-  #   scores <- mypblapply(X   = seq_along(X$SEQs),
-  #                        FUN = myalign,
-  #                        ncpus = ncpus,
-  #                        toexport = toxp,
-  #                        vrb = vrb,
-  #                        SEQs = X$SEQs,
-  #                        pars = par.list) %>%
-  #     dplyr::bind_rows() %>%
-  #     t() %>%
-  #     as.matrix()
-  # }
-  #
-  # # Build denominator matrix: D_{ij} = min(scores_{i,i}, scores{j,j})
-  # denom <- matrix(pmin(rep(diag(scores), times = nrow(scores)),
-  #                      rep(diag(scores), each = nrow(scores))),
-  #                 nrow  = nrow(scores), byrow = FALSE)
-  #
-  # # Calculate normalized dissimilarity
-  # rownames(scores) <- colnames(scores) <- X$IDs
-  # diss_matrix <- 1 - scores / denom
-  #
-  # return(list(scores = scores,
-  #             diss_matrix = diss_matrix))
-
+  return(list(scores = scores,
+              diss_matrix = diss_matrix))
 }
