@@ -29,18 +29,24 @@
 #' @param seqtype type of sequence being aligned. Accepts "aa", "dna" or "rna".
 #' @param par.list list object with parameters to be passed to
 #' [Biostrings::pairwiseAlignment()]. See `Details`.
+#' A `NULL` par.list is translated to the default values.
 #' @param vrb logical flag: should progress be printed to console?
 #'
 #' @return list object with two elements: `scores` (matrix of
 #' local or global alignment scores) and `diss_matrix` (dissimilarity matrix)
 #'
 #' @importFrom dplyr %>%
+#'
+#' @export
 
 calc_biostrings_alignment <- function(X = NULL,
                                       seqfile = NULL,
                                       ncpus = 1,
                                       seqtype = c("aa","dna","rna"),
-                                      par.list = list(),
+                                      par.list = list(type = "local",
+                                                      substitutionMatrix = "BLOSUM62",
+                                                      gapOpening = 10,
+                                                      gapExtension = 4),
                                       vrb = TRUE){
 
   # ========================================================================
@@ -52,8 +58,15 @@ calc_biostrings_alignment <- function(X = NULL,
                           assertthat::is.count(ncpus),
                           is.character(seqtype), length(seqtype) == 1,
                           seqtype %in% c("aa","dna","rna"),
-                          is.list(par.list),
+                          is.null || is.list(par.list),
                           is.logical(vrb), length(vrb) == 1)
+
+  if(is.null(par.list)){
+    par.list <- list(type = "local",
+                    substitutionMatrix = "BLOSUM62",
+                    gapOpening = 10,
+                    gapExtension = 4)
+  }
 
   # Check/Set default par.list attributes
   if(!("type" %in% names(par.list)))

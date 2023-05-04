@@ -9,7 +9,8 @@ calc_biostrings_alignment(
   seqfile = NULL,
   ncpus = 1,
   seqtype = c("aa", "dna", "rna"),
-  par.list = list(),
+  par.list = list(type = "local", substitutionMatrix = "BLOSUM62", gapOpening = 10,
+    gapExtension = 4),
   vrb = TRUE
 )
 }
@@ -26,7 +27,8 @@ must be provided as a data frame in `X`.}
 \item{seqtype}{type of sequence being aligned. Accepts "aa", "dna" or "rna".}
 
 \item{par.list}{list object with parameters to be passed to
-[Biostrings::pairwiseAlignment()]. See `Details`.}
+[Biostrings::pairwiseAlignment()]. See `Details`.
+A `NULL` par.list is translated to the default values.}
 
 \item{vrb}{logical flag: should progress be printed to console?}
 }

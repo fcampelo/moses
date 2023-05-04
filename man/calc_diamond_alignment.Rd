@@ -30,7 +30,7 @@ must be provided as a data frame in `X`.}
 \item{seqtype}{type of sequence being aligned. Accepts "aa", "dna" or "rna".}
 
 \item{par.list}{list object with parameters to be passed to
-DIAMOND. See `Details`.}
+DIAMOND. See `Details`. A `NULL` par.list is translated to the default values.}
 
 \item{diamond.path}{path to the folder where DIAMOND can be executed
 (e.g., where the executable file is located). This is also the folder where
@@ -68,7 +68,7 @@ that the user wants to pass to DIAMOND.
 By default, this list will be populated with:
 
 \itemize{
- \item `--ultra-sensitive` (the most sensitive setting)
+ \item `--sensitive` (more sensitive setting)
  \item `--block-size 0.5`   (to limit memory usage to about 3GB, which should enable it to run in most personal machines)
  \item `--matrix BLOSUM62` (DIAMOND standard)
  \item `--gapopen 11` (DIAMOND standard)

@@ -16,7 +16,7 @@
 #' By default, this list will be populated with:
 #'
 #' \itemize{
-#'  \item `--ultra-sensitive` (the most sensitive setting)
+#'  \item `--sensitive` (more sensitive setting)
 #'  \item `--block-size 0.5`   (to limit memory usage to about 3GB, which should enable it to run in most personal machines)
 #'  \item `--matrix BLOSUM62` (DIAMOND standard)
 #'  \item `--gapopen 11` (DIAMOND standard)
@@ -50,7 +50,7 @@
 #' @param ncpus number of cores to use
 #' @param seqtype type of sequence being aligned. Accepts "aa", "dna" or "rna".
 #' @param par.list list object with parameters to be passed to
-#' DIAMOND. See `Details`.
+#' DIAMOND. See `Details`. A `NULL` par.list is translated to the default values.
 #' @param vrb logical flag: should progress be printed to console? Note that
 #' this does not control the echoing of DIAMOND - for that, add option
 #' `"--quiet"` to `par.list`.
@@ -66,6 +66,8 @@
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
+#'
+#' @export
 
 calc_diamond_alignment <- function(X = NULL,
                                    seqfile = NULL,
@@ -93,12 +95,17 @@ calc_diamond_alignment <- function(X = NULL,
                           assertthat::is.count(ncpus),
                           is.character(seqtype), length(seqtype) == 1,
                           seqtype %in% c("aa","dna","rna"),
-                          is.character(par.list),
+                          is.null(par.list) || is.character(par.list),
                           is.character(diamond.path), length(diamond.path) == 1,
                           dir.exists(diamond.path),
                           is.logical(cleanup), length(cleanup) == 1,
                           is.logical(vrb), length(vrb) == 1,
                           assertthat::is.count(min.hit))
+
+  if(is.null(par.list)){
+    par.list <- c("--sensitive", "--matrix BLOSUM62", "--gapopen 11",
+                 "--gapextend 1", "--block-size 0.5", "--quiet")
+  }
 
   par.list <- c(par.list, paste0("--threads ", ncpus))
 
