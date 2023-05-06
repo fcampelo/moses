@@ -1,4 +1,4 @@
-#' Calculate dissimilarity scores based on Smith-Waterman or Needleman-Wunsch
+#' Sequence dissimilarity scores based on Smith-Waterman or Needleman-Wunsch
 #'
 #' This function invokes [Biostrings::pairwiseAlignment()] to calculate the
 #' normalised dissimilarity scores between all pairs of sequences in a
@@ -17,19 +17,26 @@
 #' }
 #'
 #' The user can overwrite these values and add any other parameter accepted by
-#' [Biostrings::pairwiseAlignment()] _except_ ` scoreOnly` (which is always set
-#' to `TRUE`).
+#' [Biostrings::pairwiseAlignment()] _except_ ` scoreOnly` (which is always
+#'  set to `TRUE`).
+#'
+#' @section Dissimilarity value:
+#' The dissimilarity values returned by this function are calculated as:
+#'
+#' diss(a, b) = 1 - score(a, b) / min(score(a, a), score(b, b)),
+#'
+#' that is, based on the alignment score between a and b normalised by the
+#' smallest self-alignment score of sequences a and b.
 #'
 #' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
 #' (containing strings with the sequences to be aligned). Ignored if a file
 #' path is provided in `seqfile`.
 #' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
 #' must be provided as a data frame in `X`.
-#' @param ncpus number of cores to use
-#' @param seqtype type of sequence being aligned. Accepts "aa", "dna" or "rna".
+#' @param ncpus number of cores to use.
 #' @param par.list list object with parameters to be passed to
 #' [Biostrings::pairwiseAlignment()]. See `Details`.
-#' A `NULL` par.list is translated to the default values.
+#' `NULL` is translated to the default values.
 #' @param vrb logical flag: should progress be printed to console?
 #'
 #' @return list object with two elements: `scores` (matrix of
@@ -42,7 +49,6 @@
 calc_biostrings_alignment <- function(X = NULL,
                                       seqfile = NULL,
                                       ncpus = 1,
-                                      seqtype = c("aa","dna","rna"),
                                       par.list = list(type = "local",
                                                       substitutionMatrix = "BLOSUM62",
                                                       gapOpening = 10,
@@ -56,16 +62,14 @@ calc_biostrings_alignment <- function(X = NULL,
                           is.null(seqfile) || is.character(seqfile),
                           is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
-                          is.character(seqtype), length(seqtype) == 1,
-                          seqtype %in% c("aa","dna","rna"),
                           is.null || is.list(par.list),
                           is.logical(vrb), length(vrb) == 1)
 
   if(is.null(par.list)){
     par.list <- list(type = "local",
-                    substitutionMatrix = "BLOSUM62",
-                    gapOpening = 10,
-                    gapExtension = 4)
+                     substitutionMatrix = "BLOSUM62",
+                     gapOpening = 10,
+                     gapExtension = 4)
   }
 
   # Check/Set default par.list attributes
@@ -86,25 +90,24 @@ calc_biostrings_alignment <- function(X = NULL,
 
   # ========================================================================
 
-  if(seqtype == "aa"){
-    mymsg("Calculating similarities", vrb)
+  mymsg("Calculating similarities", vrb)
 
-    utils::data(list    = par.list$substitutionMatrix,
-                package = "Biostrings")
+  utils::data(list    = par.list$substitutionMatrix,
+              package = "Biostrings")
 
-    toxp <- list(substitution_matrix = par.list$substitutionMatrix)
+  toxp <- list(substitution_matrix = par.list$substitutionMatrix)
 
-    scores <- mypblapply(X   = seq_along(X$SEQs),
-                         FUN = myalign,
-                         ncpus = ncpus,
-                         toexport = toxp,
-                         vrb = vrb,
-                         SEQs = X$SEQs,
-                         pars = par.list) %>%
-      dplyr::bind_rows() %>%
-      t() %>%
-      as.matrix()
-  }
+  scores <- mypblapply(X   = seq_along(X$SEQs),
+                       FUN = myalign,
+                       ncpus = ncpus,
+                       toexport = toxp,
+                       vrb = vrb,
+                       SEQs = X$SEQs,
+                       pars = par.list) %>%
+    dplyr::bind_rows() %>%
+    t() %>%
+    as.matrix()
+
 
   # Build denominator matrix: D_{ij} = min(scores_{i,i}, scores{j,j})
   denom <- matrix(pmin(rep(diag(scores), times = nrow(scores)),

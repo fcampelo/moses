@@ -2,13 +2,12 @@
 % Please edit documentation in R/calc_diamond_alignment.R
 \name{calc_diamond_alignment}
 \alias{calc_diamond_alignment}
-\title{Calculate dissimilarity scores based on DIAMOND-BLAST alignment}
+\title{Sequence dissimilarity scores based on DIAMOND-BLAST alignment}
 \usage{
 calc_diamond_alignment(
   X = NULL,
   seqfile = NULL,
   ncpus = 1,
-  seqtype = c("aa", "dna", "rna"),
   par.list = c("--sensitive", "--matrix BLOSUM62", "--gapopen 11", "--gapextend 1",
     "--block-size 0.5", "--quiet"),
   diamond.path = "./",
@@ -26,8 +25,6 @@ path is provided in `seqfile`.}
 must be provided as a data frame in `X`.}
 
 \item{ncpus}{number of cores to use}
-
-\item{seqtype}{type of sequence being aligned. Accepts "aa", "dna" or "rna".}
 
 \item{par.list}{list object with parameters to be passed to
 DIAMOND. See `Details`. A `NULL` par.list is translated to the default values.}
@@ -51,9 +48,8 @@ local or global alignment scores) and `diss_matrix` (dissimilarity matrix)
 }
 \description{
 This function invokes DIAMOND (needs to be installed externally) to
- calculate the
-normalised dissimilarity scores between all pairs of sequences in a
-data frame.
+calculate the normalised dissimilarity scores between all pairs of
+sequences in a data frame.
 }
 \section{Installing DIAMOND}{
 
@@ -78,7 +74,8 @@ By default, this list will be populated with:
 Additionally, this routine will translate the value of `ncpus`
 to the DIAMOND option `--threads ncpus`.
 
-The user can pass any desired parameters for DIAMOND, except `--outfmt`
+The user can pass any desired parameters for DIAMOND, except
+`--threads` (which is passed separately as `ncpus`) and `--outfmt`
 (which is always set to 6, the BLAST tabular format with
 the default output fields defined in DIAMOND:
 "qseqid", "sseqid", "pident", "length",  "mismatch", "gapopen",

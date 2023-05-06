@@ -2,13 +2,12 @@
 % Please edit documentation in R/calc_biostrings_alignment.R
 \name{calc_biostrings_alignment}
 \alias{calc_biostrings_alignment}
-\title{Calculate dissimilarity scores based on Smith-Waterman or Needleman-Wunsch}
+\title{Sequence dissimilarity scores based on Smith-Waterman or Needleman-Wunsch}
 \usage{
 calc_biostrings_alignment(
   X = NULL,
   seqfile = NULL,
   ncpus = 1,
-  seqtype = c("aa", "dna", "rna"),
   par.list = list(type = "local", substitutionMatrix = "BLOSUM62", gapOpening = 10,
     gapExtension = 4),
   vrb = TRUE
@@ -22,13 +21,11 @@ path is provided in `seqfile`.}
 \item{seqfile}{FASTA file containing the sequences. If `NULL` then sequences
 must be provided as a data frame in `X`.}
 
-\item{ncpus}{number of cores to use}
-
-\item{seqtype}{type of sequence being aligned. Accepts "aa", "dna" or "rna".}
+\item{ncpus}{number of cores to use.}
 
 \item{par.list}{list object with parameters to be passed to
 [Biostrings::pairwiseAlignment()]. See `Details`.
-A `NULL` par.list is translated to the default values.}
+`NULL` is translated to the default values.}
 
 \item{vrb}{logical flag: should progress be printed to console?}
 }
@@ -55,7 +52,17 @@ this list will be populated with:
 }
 
 The user can overwrite these values and add any other parameter accepted by
-[Biostrings::pairwiseAlignment()] _except_ ` scoreOnly` (which is always set
-to `TRUE`).
+[Biostrings::pairwiseAlignment()] _except_ ` scoreOnly` (which is always
+ set to `TRUE`).
+}
+
+\section{Dissimilarity value}{
+
+The dissimilarity values returned by this function are calculated as:
+
+diss(a, b) = 1 - score(a, b) / min(score(a, a), score(b, b)),
+
+that is, based on the alignment score between a and b normalised by the
+smallest self-alignment score of sequences a and b.
 }
 

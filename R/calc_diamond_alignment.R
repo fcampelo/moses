@@ -1,9 +1,8 @@
-#' Calculate dissimilarity scores based on DIAMOND-BLAST alignment
+#' Sequence dissimilarity scores based on DIAMOND-BLAST alignment
 #'
 #' This function invokes DIAMOND (needs to be installed externally) to
-#'  calculate the
-#' normalised dissimilarity scores between all pairs of sequences in a
-#' data frame.
+#' calculate the normalised dissimilarity scores between all pairs of
+#' sequences in a data frame.
 #'
 #' @section Installing DIAMOND:
 #' This routine requires DIAMOND to be available in the system. Please refer to
@@ -26,7 +25,8 @@
 #' Additionally, this routine will translate the value of `ncpus`
 #' to the DIAMOND option `--threads ncpus`.
 #'
-#' The user can pass any desired parameters for DIAMOND, except `--outfmt`
+#' The user can pass any desired parameters for DIAMOND, except
+#' `--threads` (which is passed separately as `ncpus`) and `--outfmt`
 #' (which is always set to 6, the BLAST tabular format with
 #' the default output fields defined in DIAMOND:
 #' "qseqid", "sseqid", "pident", "length",  "mismatch", "gapopen",
@@ -48,7 +48,6 @@
 #' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
 #' must be provided as a data frame in `X`.
 #' @param ncpus number of cores to use
-#' @param seqtype type of sequence being aligned. Accepts "aa", "dna" or "rna".
 #' @param par.list list object with parameters to be passed to
 #' DIAMOND. See `Details`. A `NULL` par.list is translated to the default values.
 #' @param vrb logical flag: should progress be printed to console? Note that
@@ -72,7 +71,6 @@
 calc_diamond_alignment <- function(X = NULL,
                                    seqfile = NULL,
                                    ncpus = 1,
-                                   seqtype = c("aa","dna","rna"),
                                    par.list = c("--sensitive",
                                                 "--matrix BLOSUM62",
                                                 "--gapopen 11",
@@ -93,8 +91,6 @@ calc_diamond_alignment <- function(X = NULL,
                           is.null(seqfile) || is.character(seqfile),
                           is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
-                          is.character(seqtype), length(seqtype) == 1,
-                          seqtype %in% c("aa","dna","rna"),
                           is.null(par.list) || is.character(par.list),
                           is.character(diamond.path), length(diamond.path) == 1,
                           dir.exists(diamond.path),
@@ -141,8 +137,7 @@ calc_diamond_alignment <- function(X = NULL,
 
   # Call aligner
   mymsg("Running DIAMOND aligner", vrb)
-  callst <- paste0(diamond.path, "/diamond ",
-                   ifelse(seqtype == "aa", "blastp ", "blastx "),
+  callst <- paste0(diamond.path, "/diamond blastp ",
                    "-q ", torm[1], " -d ", torm[2], " -o ", torm[3], " ",
                    paste(par.list, collapse = " "))
 
@@ -205,6 +200,11 @@ calc_diamond_alignment <- function(X = NULL,
     colnames(diss_matrix) <- c(pnames, missing)
     rownames(diss_matrix) <- c(pnames, missing)
     diss_matrix[is.na(diss_matrix)] <- 1
+  }
+
+  if(cleanup){
+    mymsg("Removing DIAMOND files.", vrb)
+    tmp <- file.remove(torm)
   }
 
   return(list(scores = scores,
