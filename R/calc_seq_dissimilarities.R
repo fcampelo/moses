@@ -18,10 +18,14 @@
 #' path is provided in `seqfile`.
 #' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
 #' must be provided as a data frame in `X`.
-#' @param ncpus number of cores to use
-#' @param seqtype type of sequence being aligned. Accepts "aa", "dna" or "rna".
-#' @param par.list parameters to be passed to [calc_biostrings_alignment()] or
-#'  [calc_diamond_alignment()]. Please check these functions for details.
+#' @param ncpus number of cores to use.
+#' @param aligner aligner to use. Accepts `"SW"` (Smith-Waterman local
+#' alignment), `"NW"` (Needleman-Wunsch global alignment) or `"diamond"`
+#' (DIAMOND BLASTp aligner).
+#' @param par.list parameters to be passed to [calc_biostrings_alignment()]
+#' (if `aligner = "SW"` or `aligner = "NW"`) or to [calc_diamond_alignment()]
+#' (if `aligner = "diamond"`). Please check these functions for details.
+#' `NULL` defaults to the standard parameter values of each function.
 #' @param vrb logical flag: should progress be printed to console? Note that
 #' this does not control the echoing of DIAMOND (check
 #' [calc_diamond_alignment()]) for details).
@@ -38,21 +42,41 @@
 #'
 #' @export
 
-# calc_seq_dissimilarities <- function(X = NULL,
-#                                      seqfile = NULL,
-#                                      ncpus = 1,
-#                                      seqtype = c("aa","dna","rna"),
-#                                      disstype = "diamond",
-#                                      par.list = NULL,
-#                                      diamond.path = "./",
-#                                      min.hit = 8,
-#                                      cleanup = TRUE,
-#                                      vrb = TRUE){
+calc_seq_dissimilarities <- function(X = NULL,
+                                     seqfile = NULL,
+                                     ncpus = 1,
+                                     aligner = "diamond",
+                                     par.list = NULL,
+                                     diamond.path = "./",
+                                     min.hit = 8,
+                                     cleanup = TRUE,
+                                     vrb = TRUE){
 
   # ========================================================================
   # Sanity checks and initial definitions
-#
-#
-#   return(list(scores = scores,
-#               diss_matrix = diss_matrix))
-# }
+  assertthat::assert_that(aligner %in% c("SW", "NW", "diamond"))
+
+  # ========================================================================
+  if (aligner == "diamond"){
+    output <- calc_diamond_alignment(X            = X,
+                                     seqfile      = seqfile,
+                                     ncpus        = ncpus,
+                                     par.list     = par.list(),
+                                     diamond.path = diamond.path,
+                                     min.hit      = min.hit,
+                                     cleanup      = cleanup,
+                                     vrb          = vrb)
+  } else {
+    if (is.null(par.list)) par.list = list()
+    par.list$type <- ifelse(aligner == "NW", "global", "local")
+    output <- calc_biostrings_alignment(X        = X,
+                                        seqfile  = seqfile,
+                                        ncpus    = ncpus,
+                                        par.list = par.list,
+                                        vrb      = vrb)
+  }
+  attributes(output$diss_matrix)$diss_source = aligner
+  attributes(output$scores)$diss_source = aligner
+
+  return(output)
+}

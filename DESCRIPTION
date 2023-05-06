@@ -2,6 +2,7 @@ Package: moses
 Type: Package
 Title: Multi Objective Sequence Splitter
 Version: 0.1.0
+Date: 2023-05-06
 Authors@R: c(person("Felipe", "Campelo",
     email   = "fcampelo@gmail.com",
     role    = c("aut", "cre")),
