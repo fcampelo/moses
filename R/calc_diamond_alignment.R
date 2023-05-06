@@ -158,7 +158,7 @@ calc_diamond_alignment <- function(X = NULL,
     rownames(diss_matrix) <- colnames(diss_matrix) <- protIDs
 
   } else {
-    scores <- read.csv(torm[3], sep = "\t",
+    scores <- utils::read.csv(torm[3], sep = "\t",
                        header = FALSE,
                        stringsAsFactors = FALSE)
     names(scores) <- c("qseqid", "sseqid", "pident", "length",
