@@ -68,3 +68,12 @@ to [https://github.com/bbuchfink/diamond/wiki/2.-Installation](https://github.co
 for installation details.
 }
 
+\examples{
+\dontrun{
+# using any fasta file.
+x <- calc_seq_dissimilarities(seqfile = "./inst/extdata/bfprots.fa")
+
+
+}
+
+}

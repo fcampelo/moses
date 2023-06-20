@@ -41,6 +41,15 @@
 #'
 #'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' # using any fasta file.
+#' x <- calc_seq_dissimilarities(seqfile = "./inst/extdata/bfprots.fa")
+#'
+#'
+#' }
+#'
 
 calc_seq_dissimilarities <- function(X = NULL,
                                      seqfile = NULL,
@@ -61,7 +70,7 @@ calc_seq_dissimilarities <- function(X = NULL,
     output <- calc_diamond_alignment(X            = X,
                                      seqfile      = seqfile,
                                      ncpus        = ncpus,
-                                     par.list     = par.list(),
+                                     par.list     = par.list,
                                      diamond.path = diamond.path,
                                      min.hit      = min.hit,
                                      cleanup      = cleanup,

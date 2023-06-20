@@ -100,15 +100,15 @@ calc_diamond_alignment <- function(X = NULL,
 
   if(is.null(par.list)){
     par.list <- c("--sensitive", "--matrix BLOSUM62", "--gapopen 11",
-                 "--gapextend 1", "--block-size 0.5", "--quiet")
+                  "--gapextend 1", "--block-size 0.5", "--quiet")
   }
 
   par.list <- c(par.list, paste0("--threads ", ncpus))
 
-  diamond.path <- gsub("\\/$", "", diamond.path)
+  diamond.path <- gsub("\\/$|\\.\\/", "", diamond.path)
 
   # List of files that will be created (for later deletion if needed)
-  torm <- paste0(diamond.path,
+  torm <- paste0(ifelse(diamond.path == "", ".", diamond.path),
                  c("/seqs.fa",                  # sequences file
                    "/proteins-reference.dmnd",  # database file
                    "/protein-matches.tsv"))
@@ -128,7 +128,9 @@ calc_diamond_alignment <- function(X = NULL,
 
   # Call makedb
   mymsg("Building DIAMOND database", vrb)
-  mdbst <- paste0(diamond.path, "/diamond makedb --in ", torm[1],
+  mdbst <- paste0(diamond.path,
+                  ifelse(diamond.path == "", "", "/"),
+                  "diamond makedb --in ", torm[1],
                   " -d ", torm[2],
                   ifelse(any(grepl("--quiet", par.list)), " --quiet ", ""),
                   "--threads ", ncpus)
@@ -137,7 +139,9 @@ calc_diamond_alignment <- function(X = NULL,
 
   # Call aligner
   mymsg("Running DIAMOND aligner", vrb)
-  callst <- paste0(diamond.path, "/diamond blastp ",
+  callst <- paste0(diamond.path,
+                   ifelse(diamond.path == "", "", "/"),
+                   "diamond blastp ",
                    "-q ", torm[1], " -d ", torm[2], " -o ", torm[3], " ",
                    paste(par.list, collapse = " "))
 
@@ -147,6 +151,9 @@ calc_diamond_alignment <- function(X = NULL,
   mymsg("Calculating dissimilarity matrix", vrb)
   if(!file.exists(torm[3])){
     # No alignments found.
+    warning("ATTENTION: File ", torm[3], " not produced. This indicates\n",
+            "either an error in calling DIAMOND or the absence of significant\n",
+            "alignments in the data. Proceed with caution.")
     scores <- as.data.frame(matrix(ncol=12, nrow=1))
     names(scores) <- c("qseqid", "sseqid", "pident", "length",
                        "mismatch", "gapopen", "qstart", "qend",
@@ -159,8 +166,8 @@ calc_diamond_alignment <- function(X = NULL,
 
   } else {
     scores <- utils::read.csv(torm[3], sep = "\t",
-                       header = FALSE,
-                       stringsAsFactors = FALSE)
+                              header = FALSE,
+                              stringsAsFactors = FALSE)
     names(scores) <- c("qseqid", "sseqid", "pident", "length",
                        "mismatch", "gapopen", "qstart", "qend",
                        "sstart", "send", "evalue", "bitscore")
@@ -191,8 +198,10 @@ calc_diamond_alignment <- function(X = NULL,
     protIDs <- names(seqinr::read.fasta(torm[1], as.string = TRUE))
     missing <- protIDs[which(!(protIDs %in% rownames(diss_matrix)))]
 
-    diss_matrix[(nrow(diss_matrix) + 1):(nrow(diss_matrix) + length(missing)), ] <- 1
-    diss_matrix[, (ncol(diss_matrix) + 1):(ncol(diss_matrix) + length(missing))] <- 1
+    if(length(missing) > 0){
+      diss_matrix[(nrow(diss_matrix) + 1):(nrow(diss_matrix) + length(missing)), ] <- 1
+      diss_matrix[, (ncol(diss_matrix) + 1):(ncol(diss_matrix) + length(missing))] <- 1
+    }
 
     diss_matrix <- as.matrix(diss_matrix)
     diag(diss_matrix) <- 0
