@@ -13,7 +13,7 @@
 #' to [https://github.com/bbuchfink/diamond/wiki/2.-Installation](https://github.com/bbuchfink/diamond/wiki/2.-Installation)
 #' for installation details.
 #'
-#' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
+#' @param X data frame with two fields, `ID` (with sequence ids) and `SEQ`
 #' (containing strings with the sequences to be aligned). Ignored if a file
 #' path is provided in `seqfile`.
 #' @param seqfile FASTA file containing the sequences. If `NULL` then sequences

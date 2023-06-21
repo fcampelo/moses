@@ -42,7 +42,7 @@
 #' longer than `min.hit` are considered.
 #'
 #'
-#' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
+#' @param X data frame with two fields, `ID` (with sequence ids) and `SEQ`
 #' (containing strings with the sequences to be aligned). Ignored if a file
 #' path is provided in `seqfile`.
 #' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
@@ -87,7 +87,7 @@ calc_diamond_alignment <- function(X = NULL,
   if(is.list(par.list)) unlist(par.list)
 
   assertthat::assert_that(is.data.frame(X) || is.null(X),
-                          is.null(X) || all(c("IDs", "SEQs") %in% names(X)),
+                          is.null(X) || all(c("ID", "SEQ") %in% names(X)),
                           is.null(seqfile) || is.character(seqfile),
                           is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
@@ -119,7 +119,7 @@ calc_diamond_alignment <- function(X = NULL,
   # Save sequences as a FASTA file
   if(is.null(seqfile)){
     seqinr::write.fasta(sequences = as.list(X$SEQs),
-                        names     = X$IDs,
+                        names     = X$ID,
                         file.out  = torm[1])
   } else {
     file.copy(from = seqfile, to = torm[1], overwrite = TRUE)

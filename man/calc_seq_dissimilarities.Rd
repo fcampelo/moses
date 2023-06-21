@@ -17,7 +17,7 @@ calc_seq_dissimilarities(
 )
 }
 \arguments{
-\item{X}{data frame with two fields, `IDs` (with sequence ids) and `SEQs`
+\item{X}{data frame with two fields, `ID` (with sequence ids) and `SEQ`
 (containing strings with the sequences to be aligned). Ignored if a file
 path is provided in `seqfile`.}
 
@@ -71,7 +71,8 @@ for installation details.
 \examples{
 \dontrun{
 # using any fasta file.
-x <- calc_seq_dissimilarities(seqfile = "./inst/extdata/bfprots.fa")
+x <- calc_seq_dissimilarities(seqfile = "diamond/bfprots.fa",
+                              aligner = "SW")
 }
 
 }

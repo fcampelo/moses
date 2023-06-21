@@ -51,7 +51,7 @@ extract_clusters <- function(diss_matrix,
 
 
   return(list(clusters = clusters,
-              cl.labels = data.frame(IDs = names(cluster.labels),
+              cl.labels = data.frame(ID = names(cluster.labels),
                                      Cluster = unname(cluster.labels))))
 
 }

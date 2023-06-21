@@ -72,7 +72,7 @@ extract_cdhit_clusters <- function(X = NULL,
   clusters <- do.call(CellaRepertorium::cdhit, args = par.list)
 
   return(clusters  = clusters,
-         cl.labels = data.frame(IDs = clusters$query_name,
+         cl.labels = data.frame(ID = clusters$query_name,
                                 Cluster = clusters$cluster_idx))
 
 }

@@ -4,7 +4,7 @@
 #' [extract_cdhit_clusters()] with data related to the count of class examples
 #' to be associated with each entry.
 #'
-#' @param clusters data frame containing entry IDs (column `IDs`) and their
+#' @param clusters data frame containing entry IDs (column `ID`) and their
 #' respective cluster identifiers (column `Cluster`).
 #' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
 #' must be provided as a data frame in `X`.
@@ -40,7 +40,7 @@ consolidate_class_counts <- function(X = NULL,
   # =======================================================================
   # Sanity checks and initial definitions
   assertthat::assert_that(is.data.frame(X) || is.null(X),
-                          is.null(X) || all(c("IDs", "SEQs") %in% names(X)),
+                          is.null(X) || all(c("ID", "SEQ") %in% names(X)),
                           is.null(seqfile) || is.character(seqfile),
                           is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
@@ -55,7 +55,7 @@ consolidate_class_counts <- function(X = NULL,
 
   if(is.null(seqfile)){
     seqs <- X$SEQs
-    names(seqs) <- X$IDs
+    names(seqs) <- X$ID
     seqs <- Biostrings::AAStringSet(x = seqs, use.names = TRUE)
   } else {
     seqs <- Biostrings::readAAStringSet(seqfile)
@@ -70,7 +70,7 @@ consolidate_class_counts <- function(X = NULL,
   clusters <- do.call(CellaRepertorium::cdhit, args = par.list)
 
   return(clusters  = clusters,
-         cl.labels = data.frame(IDs = clusters$query_name,
+         cl.labels = data.frame(ID = clusters$query_name,
                                 Cluster = clusters$cluster_idx))
 
 }

@@ -14,7 +14,7 @@ calc_biostrings_alignment(
 )
 }
 \arguments{
-\item{X}{data frame with two fields, `IDs` (with sequence ids) and `SEQs`
+\item{X}{data frame with two fields, `ID` (with sequence ids) and `SEQ`
 (containing strings with the sequences to be aligned). Ignored if a file
 path is provided in `seqfile`.}
 

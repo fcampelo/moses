@@ -3,6 +3,8 @@
 export(calc_biostrings_alignment)
 export(calc_diamond_alignment)
 export(calc_seq_dissimilarities)
+export(consolidate_class_counts)
+export(extract_cdhit_clusters)
 export(extract_clusters)
 export(install_bioc_dependencies)
 importFrom(dplyr,"%>%")

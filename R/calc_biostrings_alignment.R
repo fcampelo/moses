@@ -28,7 +28,7 @@
 #' that is, based on the alignment score between a and b normalised by the
 #' smallest self-alignment score of sequences a and b.
 #'
-#' @param X data frame with two fields, `IDs` (with sequence ids) and `SEQs`
+#' @param X data frame with two fields, `ID` (with sequence ids) and `SEQ`
 #' (containing strings with the sequences to be aligned). Ignored if a file
 #' path is provided in `seqfile`.
 #' @param seqfile FASTA file containing the sequences. If `NULL` then sequences
@@ -58,7 +58,7 @@ calc_biostrings_alignment <- function(X = NULL,
   # ========================================================================
   # Sanity checks and initial definitions
   assertthat::assert_that(is.data.frame(X) || is.null(X),
-                          is.null(X) || all(c("IDs", "SEQs") %in% names(X)),
+                          is.null(X) || all(c("ID", "SEQ") %in% names(X)),
                           is.null(seqfile) || is.character(seqfile),
                           is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
@@ -84,8 +84,8 @@ calc_biostrings_alignment <- function(X = NULL,
 
   if(!is.null(seqfile)){
     X <- seqinr::read.fasta(seqfile, as.string = TRUE)
-    X <- data.frame(IDs = attributes(X)$name,
-                    SEQs = toupper(as.character(X)))
+    X <- data.frame(ID = attributes(X)$name,
+                    SEQ = toupper(as.character(X)))
   }
 
   # ========================================================================
@@ -115,7 +115,7 @@ calc_biostrings_alignment <- function(X = NULL,
                   nrow  = nrow(scores), byrow = FALSE)
 
   # Calculate normalized dissimilarity
-  rownames(scores) <- colnames(scores) <- X$IDs
+  rownames(scores) <- colnames(scores) <- X$ID
   diss_matrix <- 1 - scores / denom
 
   return(list(scores = scores,
