@@ -179,7 +179,7 @@ calc_diamond_alignment <- function(X = NULL,
       dplyr::summarise(dplyr::across(dplyr::everything(), dplyr::first),
                        .groups = "drop") %>%
       dplyr::mutate(diss = 1 - .data$pident / 100) %>%
-      dplyr::select(.data$qseqid, .data$sseqid, .data$diss) %>%
+      dplyr::select(c("qseqid", "sseqid", "diss")) %>%
       tidyr::pivot_wider(names_from = .data$sseqid,
                          values_from = .data$diss,
                          values_fill = NA) %>%
@@ -191,7 +191,7 @@ calc_diamond_alignment <- function(X = NULL,
     # Make the dissimilarity scores matrix
     diss_matrix <- diss_matrix %>%
       dplyr::select(order(colnames(diss_matrix)),
-                    -.data$qseqid)
+                    -"qseqid")
 
     pnames <- rownames(diss_matrix)
 

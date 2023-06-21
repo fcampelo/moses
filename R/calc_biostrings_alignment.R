@@ -62,7 +62,7 @@ calc_biostrings_alignment <- function(X = NULL,
                           is.null(seqfile) || is.character(seqfile),
                           is.null(seqfile) || file.exists(seqfile),
                           assertthat::is.count(ncpus),
-                          is.null || is.list(par.list),
+                          is.null(par.list) || is.list(par.list),
                           is.logical(vrb), length(vrb) == 1)
 
   if(is.null(par.list)){

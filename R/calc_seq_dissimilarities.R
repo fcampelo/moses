@@ -45,9 +45,8 @@
 #' @examples
 #' \dontrun{
 #' # using any fasta file.
-#' x <- calc_seq_dissimilarities(seqfile = "./inst/extdata/bfprots.fa")
-#'
-#'
+#' x <- calc_seq_dissimilarities(seqfile = "diamond/bfprots.fa",
+#'                               aligner = "SW")
 #' }
 #'
 

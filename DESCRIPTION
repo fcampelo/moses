@@ -2,7 +2,7 @@ Package: moses
 Type: Package
 Title: Multi Objective Sequence Splitter
 Version: 0.1.0
-Date: 2023-05-06
+Date: 2023-06-21
 Authors@R: c(person("Felipe", "Campelo",
     email   = "fcampelo@gmail.com",
     role    = c("aut", "cre")),
@@ -27,7 +27,8 @@ Imports: assertthat (>= 0.2.1),
          seqinr (>= 4.2.0),
          rlang (>= 1.1.0),
          tidyr (>= 1.3.0),
-         knitr (>= 1.40.0)
+         knitr (>= 1.40.0),
+         fastcluster (>= 1.2.3)
 Suggests: Biostrings (>= 2.60.0),
           CellaRepertorium (>= 1.8.0)
 SuggestsNote:

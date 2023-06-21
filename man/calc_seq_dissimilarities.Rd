@@ -72,8 +72,6 @@ for installation details.
 \dontrun{
 # using any fasta file.
 x <- calc_seq_dissimilarities(seqfile = "./inst/extdata/bfprots.fa")
-
-
 }
 
 }
