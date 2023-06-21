@@ -28,7 +28,8 @@ Imports: assertthat (>= 0.2.1),
          rlang (>= 1.1.0),
          tidyr (>= 1.3.0),
          knitr (>= 1.40.0)
-Suggests: Biostrings (>= 2.60.0)
+Suggests: Biostrings (>= 2.60.0),
+          CellaRepertorium (>= 1.8.0)
 SuggestsNote:
   BioC (>= 3.0)
 Encoding: UTF-8

@@ -4,6 +4,7 @@
 #' required, namely:
 #' \itemize{
 #'    \item Biostrings
+#'    \item CellaRepertorium
 #' }
 #'
 #' It is essential that
@@ -30,7 +31,7 @@ install_bioc_dependencies <- function(bioc.args = list(),
   assertthat::assert_that(is.list(bioc.args),
                           is.logical(force), length(force) == 1)
 
-  pkgs <- c("Biostrings")
+  pkgs <- c("Biostrings", "CellaRepertorium")
   makeInst <- FALSE
 
   if (force){

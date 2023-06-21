@@ -20,6 +20,7 @@ This function installs the latest versions of all Bioconductor packages
 required, namely:
 \itemize{
    \item Biostrings
+   \item CellaRepertorium
 }
 }
 \details{
