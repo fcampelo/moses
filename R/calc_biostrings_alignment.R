@@ -97,12 +97,12 @@ calc_biostrings_alignment <- function(X = NULL,
 
   toxp <- list(substitution_matrix = par.list$substitutionMatrix)
 
-  scores <- mypblapply(X   = seq_along(X$SEQs),
+  scores <- mypblapply(X   = seq_along(X$SEQ),
                        FUN = myalign,
                        ncpus = ncpus,
                        toexport = toxp,
                        vrb = vrb,
-                       SEQs = X$SEQs,
+                       SEQs = X$SEQ,
                        pars = par.list) %>%
     dplyr::bind_rows() %>%
     t() %>%
