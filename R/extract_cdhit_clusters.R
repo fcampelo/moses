@@ -34,7 +34,7 @@ extract_cdhit_clusters <- function(X = NULL,
                                    ncpus = 1,
                                    par.list = list(kmerSize = NULL,
                                                    min_length = 8,
-                                                   s = ,
+                                                   s = 1,
                                                    G = 1)){
 
   # =======================================================================

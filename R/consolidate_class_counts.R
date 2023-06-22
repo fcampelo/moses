@@ -44,16 +44,15 @@ consolidate_class_counts <- function(clusters, class_counts){
   if("Class" %in% names(class_counts)){
     X <- X %>%
       dplyr::group_by(dplyr::across(dplyr::all_of(c("Cluster", "Class")))) %>%
-      dplyr::summarise(Count = n(), .groups = "drop") %>%
+      dplyr::summarise(Count = dplyr::n(), .groups = "drop") %>%
       tidyr::pivot_wider(names_from = "Class", values_from = "Count") %>%
-      dplyr::mutate(across(everything(), .fn = ~ifelse(is.na(.x), 0, .x))) %>%
-      dplyr::rename_with(.cols = !starts_with("Cluster"), .fn = ~paste0("Class.", .x))
+      dplyr::mutate(dplyr::across(dplyr::everything(), .fn = ~ifelse(is.na(.x), 0, .x))) %>%
+      dplyr::rename_with(.cols = !dplyr::starts_with("Cluster"), .fn = ~paste0("Class.", .x))
   } else {
     X <- X %>%
       dplyr::group_by(dplyr::across(dplyr::all_of(c("Cluster")))) %>%
       dplyr::summarise(across(everything(), ~sum(.x)))
   }
 
-  return(X)
 
 }
