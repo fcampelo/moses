@@ -54,5 +54,5 @@ consolidate_class_counts <- function(clusters, class_counts){
       dplyr::summarise(across(everything(), ~sum(.x)))
   }
 
-
+  return(X)
 }
