@@ -11,7 +11,8 @@ consolidate_class_counts(clusters, class_counts)
 respective cluster identifiers (column `Cluster`).}
 
 \item{class_counts}{data frame containing entry IDs (column `ID` - may
-contain repeated values) and either:
+contain repeated values, in which case they are aggregated using the sum of
+each class label) and either:
 (i) a single column named `Class` with the class label associated with the
 respective ID, or (ii) two or more columns (with any arbitrary names
 **except** `Class`. `Class.A`, `Class.B` etc. are permitted) each containing
@@ -22,8 +23,8 @@ the class columns. See "Examples".}
 \value{
 A data frame with one row per cluster, a `Cluster` column and
 additional columns with counts of occurrences for each unique class (with
-names taken either from the unique class values or from the column names of
-`class_counts`).
+names taken either from the unique class values in `class_counts$Class`
+or from the column names of `class_counts`).
 }
 \description{
 This function consolidates the output of [extract_clusters()] or

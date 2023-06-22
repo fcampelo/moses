@@ -7,7 +7,8 @@
 #' @param clusters data frame containing entry IDs (column `ID`) and their
 #' respective cluster identifiers (column `Cluster`).
 #' @param class_counts data frame containing entry IDs (column `ID` - may
-#' contain repeated values) and either:
+#' contain repeated values, in which case they are aggregated using the sum of
+#' each class label) and either:
 #' (i) a single column named `Class` with the class label associated with the
 #' respective ID, or (ii) two or more columns (with any arbitrary names
 #' **except** `Class`. `Class.A`, `Class.B` etc. are permitted) each containing
@@ -17,10 +18,11 @@
 
 #' @return A data frame with one row per cluster, a `Cluster` column and
 #' additional columns with counts of occurrences for each unique class (with
-#' names taken either from the unique class values or from the column names of
-#' `class_counts`).
+#' names taken either from the unique class values in `class_counts$Class`
+#' or from the column names of `class_counts`).
 #'
 #' @importFrom dplyr %>%
+#' @importFrom rlang .data
 #'
 #' @export
 #'
@@ -40,8 +42,18 @@ consolidate_class_counts <- function(clusters, class_counts){
   X <- dplyr::left_join(clusters, class_counts, by = "ID")
 
   if("Class" %in% names(class_counts)){
-
+    X <- X %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(c("Cluster", "Class")))) %>%
+      dplyr::summarise(Count = n(), .groups = "drop") %>%
+      tidyr::pivot_wider(names_from = "Class", values_from = "Count") %>%
+      dplyr::mutate(across(everything(), .fn = ~ifelse(is.na(.x), 0, .x))) %>%
+      dplyr::rename_with(.cols = !starts_with("Cluster"), .fn = ~paste0("Class.", .x))
+  } else {
+    X <- X %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(c("Cluster")))) %>%
+      dplyr::summarise(across(everything(), ~sum(.x)))
   }
 
+  return(X)
 
 }

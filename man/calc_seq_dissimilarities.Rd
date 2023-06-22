@@ -71,7 +71,7 @@ for installation details.
 \examples{
 \dontrun{
 # using any fasta file.
-x <- calc_seq_dissimilarities(seqfile = "diamond/bfprots.fa",
+x <- calc_seq_dissimilarities(seqfile = "diamond/bfv_proteins.fa",
                               aligner = "SW")
 }
 
