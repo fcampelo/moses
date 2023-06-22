@@ -12,11 +12,9 @@
 #' documentation of [fastcluster::hclust()] for details.
 #' @param vrb logical flag: should progress be printed to console?
 #'
-#' @return list object with two elements: `clusters` (An object of class
-#' 'hclust'. It encodes a stepwise dendrogram.) and `cl.labels` (a vector with
-#' cluster memberships at the dissiimlarity level `diss_threshold`). Notice that
-#' this is the output of a call to [stats::cutree()], so if a vector is passed
-#' in `diss_threshold` then `cl.labels` will be a matrix.
+#' @return list object with two elements: `cl.object` (An object of class
+#' 'hclust'. It encodes a stepwise dendrogram.) and `clusters` (a data frame
+#' with cluster memberships at the dissimilarity level `diss_threshold`).
 #'
 #'
 #' @export
@@ -33,8 +31,8 @@ extract_clusters <- function(diss_matrix,
                           all(rownames(diss_matrix) == colnames(diss_matrix)),
                           is.numeric(diss_matrix),
                           is.numeric(diss_threshold),
-                          length(diss_threshold) > 0,
-                          all(diss_threshold >= 0), all(diss_threshold <= 1),
+                          length(diss_threshold) == 1,
+                          diss_threshold >= 0, diss_threshold <= 1,
                           is.character(linkage), length(linkage) == 1,
                           is.logical(vrb), length(vrb) == 1)
 
@@ -50,8 +48,8 @@ extract_clusters <- function(diss_matrix,
   cluster.labels <- stats::cutree(clusters, h = diss_threshold)
 
 
-  return(list(clusters = clusters,
-              cl.labels = data.frame(ID = names(cluster.labels),
+  return(list(cl.object = clusters,
+              clusters  = data.frame(ID = names(cluster.labels),
                                      Cluster = unname(cluster.labels))))
 
 }

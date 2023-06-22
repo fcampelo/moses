@@ -20,11 +20,9 @@
 #' @param par.list further parameters to be passed down to
 #' [CellaRepertorium::cdhit()]. Please check that function for details.
 #'
-#' @return list object with two elements: `clusters` (An object of class
-#' 'hclust'. It encodes a stepwise dendrogram.) and `cl.labels` (a vector with
-#' cluster memberships at the dissiimlarity level `diss_threshold`). Notice that
-#' this is the output of a call to [stats::cutree()], so if a vector is passed
-#' in `diss_threshold` then `cl.labels` will be a matrix.
+#' @return list object with two elements: `cl.df` (A data frame returned by
+#' CDHIT) and `clusters` (a data frame
+#' with cluster memberships at the dissimilarity level `diss_threshold`).
 #'
 #'
 #' @export
@@ -71,8 +69,8 @@ extract_cdhit_clusters <- function(X = NULL,
 
   clusters <- do.call(CellaRepertorium::cdhit, args = par.list)
 
-  return(clusters  = clusters,
-         cl.labels = data.frame(ID = clusters$query_name,
-                                Cluster = clusters$cluster_idx))
+  return(cl.df    = clusters,
+         clusters = data.frame(ID      = clusters$query_name,
+                               Cluster = clusters$cluster_idx))
 
 }

@@ -4,41 +4,26 @@
 \alias{consolidate_class_counts}
 \title{Consolidate ID, cluster and class count data}
 \usage{
-consolidate_class_counts(
-  X = NULL,
-  seqfile = NULL,
-  diss_threshold = 0.3,
-  vrb = TRUE,
-  ncpus = 1,
-  par.list = list(kmerSize = NULL, min_length = 8, s = , G = 1)
-)
+consolidate_class_counts(clusters, class_counts)
 }
 \arguments{
-\item{seqfile}{FASTA file containing the sequences. If `NULL` then sequences
-must be provided as a data frame in `X`.}
-
-\item{diss_threshold}{the desired dissimilarity cutting threshold for
-attributing clusters. Passed down to [CellaRepertorium::cdhit()] as
-parameter `identity = 1 - diss_treshold`.}
-
-\item{vrb}{logical flag: should progress be printed to console? Passed down
-to [CellaRepertorium::cdhit()] as parameter `showProgress = vrb`.}
-
-\item{ncpus}{number of cores to use. Passed down
-to [CellaRepertorium::cdhit()] as parameter `T = ncpus`.}
-
-\item{par.list}{further parameters to be passed down to
-[CellaRepertorium::cdhit()]. Please check that function for details.}
-
 \item{clusters}{data frame containing entry IDs (column `ID`) and their
 respective cluster identifiers (column `Cluster`).}
+
+\item{class_counts}{data frame containing entry IDs (column `ID` - may
+contain repeated values) and either:
+(i) a single column named `Class` with the class label associated with the
+respective ID, or (ii) two or more columns (with any arbitrary names
+**except** `Class`. `Class.A`, `Class.B` etc. are permitted) each containing
+the counts of different classes associated with the respective ID.
+Note that in the second case there should be no other columns except `ID` and
+the class columns. See "Examples".}
 }
 \value{
-list object with two elements: `clusters` (An object of class
-'hclust'. It encodes a stepwise dendrogram.) and `cl.labels` (a vector with
-cluster memberships at the dissiimlarity level `diss_threshold`). Notice that
-this is the output of a call to [stats::cutree()], so if a vector is passed
-in `diss_threshold` then `cl.labels` will be a matrix.
+A data frame with one row per cluster, a `Cluster` column and
+additional columns with counts of occurrences for each unique class (with
+names taken either from the unique class values or from the column names of
+`class_counts`).
 }
 \description{
 This function consolidates the output of [extract_clusters()] or

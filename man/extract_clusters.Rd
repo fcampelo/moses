@@ -24,11 +24,9 @@ documentation of [fastcluster::hclust()] for details.}
 \item{vrb}{logical flag: should progress be printed to console?}
 }
 \value{
-list object with two elements: `clusters` (An object of class
-'hclust'. It encodes a stepwise dendrogram.) and `cl.labels` (a vector with
-cluster memberships at the dissiimlarity level `diss_threshold`). Notice that
-this is the output of a call to [stats::cutree()], so if a vector is passed
-in `diss_threshold` then `cl.labels` will be a matrix.
+list object with two elements: `cl.object` (An object of class
+'hclust'. It encodes a stepwise dendrogram.) and `clusters` (a data frame
+with cluster memberships at the dissimilarity level `diss_threshold`).
 }
 \description{
 This function calculates a hierarchical clustering of entries based on
