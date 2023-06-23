@@ -51,20 +51,20 @@
     },
     "BiocManager": {
       "Package": "BiocManager",
-      "Version": "1.30.20",
+      "Version": "1.30.21",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "utils"
       ],
-      "Hash": "a7fca16a50b6ef7771b49d636dd54b57"
+      "Hash": "be203e7eea75514bc1a41c1de39a9bb9"
     },
     "BiocVersion": {
       "Package": "BiocVersion",
       "Version": "3.17.1",
       "Source": "Bioconductor",
       "git_url": "https://git.bioconductor.org/packages/BiocVersion",
-      "git_branch": "master",
+      "git_branch": "RELEASE_3_17",
       "git_last_commit": "a2d0c4c",
       "git_last_commit_date": "2022-11-02",
       "Requirements": [
@@ -195,7 +195,7 @@
     },
     "Matrix": {
       "Package": "Matrix",
-      "Version": "1.5-4.1",
+      "Version": "1.5-4",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -207,7 +207,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "38082d362d317745fb932e13956dccbb"
+      "Hash": "e779c7d9f35cc364438578f334cffee2"
     },
     "R6": {
       "Package": "R6",

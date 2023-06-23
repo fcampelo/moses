@@ -1,7 +1,8 @@
 #'
 #' @importFrom dplyr %>%
 #'
-objective_size_deviation <- function(alloc_vector, target_alloc, class_counts, ...){
+objective_size_deviation <- function(alloc_vector, target_alloc, class_counts,
+                                     ...){
 
   my_alloc <- class_counts %>%
     dplyr::bind_cols(data.frame(Split = alloc_vector)) %>%
