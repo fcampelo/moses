@@ -23,9 +23,8 @@
 #'     counts of occurrences for each unique class (with
 #'     names taken either from the unique class values in
 #' `   class_counts$Class` or from the column names of `class_counts`),
-#'     plus columns with the class proportions in each cluster.
-#'    \item A vector with the total number of observations in each
-#'    cluster
+#'     plus columns with the class proportions in each cluster and a
+#'     column with the total cluster size.
 #'    \item A vector with the proportions of each class in the data.
 #' }
 #'
@@ -33,6 +32,21 @@
 #' @importFrom rlang .data
 #'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' library(moses)
+#'
+#' # using any fasta file.
+#' x <- calc_seq_dissimilarities(seqfile = "diamond/bfv_proteins.fa",
+#'                               aligner = "SW")
+#' cl <- extract_clusters(x$diss_matrix)
+#'
+#' epits <- readRDS("diamond/bfv_peptides.rds")
+#'
+#' cc <- consolidate_class_counts(cl$clusters, epits)
+#' }
+#'
 #'
 consolidate_class_counts <- function(clusters, class_counts){
 
@@ -55,21 +69,25 @@ consolidate_class_counts <- function(clusters, class_counts){
       dplyr::summarise(Count = dplyr::n(), .groups = "drop") %>%
       tidyr::pivot_wider(names_from = "Class", values_from = "Count") %>%
       dplyr::mutate(dplyr::across(dplyr::everything(), .fn = ~ifelse(is.na(.x), 0, .x))) %>%
-      dplyr::rename_with(.cols = !dplyr::starts_with("Cluster"), .fn = ~paste0("Class.", .x))
+      dplyr::rename_with(.cols = !dplyr::starts_with("Cluster"),
+                         .fn = ~paste0("Class.", .x))
   } else {
     X <- X %>%
       dplyr::group_by(dplyr::across(dplyr::all_of(c("Cluster")))) %>%
-      dplyr::summarise(across(everything(), ~sum(.x)))
+      dplyr::summarise(across(everything(), ~sum(.x))) %>%
+      dplyr::rename_with(.cols = !dplyr::starts_with("Cluster"),
+                         .fn = ~paste0("Class.", .x))
+
   }
 
-  cluster.sizes <- rowSums(X[, -1])
-  class.balance <- colSums(X[, -1]) / sum(X[, -1])
+  class.balance <- colSums(X[, grep("Class", names(X))]) / sum(X[, grep("Class", names(X))])
 
   tmp <- X[, -1] / rowSums(X[ ,-1])
   names(tmp) <- gsub("Class", "Prop", names(tmp))
   X <- cbind(X, tmp)
 
+  X$Size <- rowSums(X[, grep("Class\\.", names(X))])
+
   return(list(class_counts  = X,
-              cluster_sizes = cluster.sizes,
               class_balance = class.balance))
 }
