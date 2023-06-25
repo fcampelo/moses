@@ -16,10 +16,18 @@
 #' Note that in the second case there should be no other columns except `ID` and
 #' the class columns. See "Examples".
 
-#' @return A data frame with one row per cluster, a `Cluster` column and
-#' additional columns with counts of occurrences for each unique class (with
-#' names taken either from the unique class values in `class_counts$Class`
-#' or from the column names of `class_counts`).
+#' @return A list object containing:
+#' \itemize{
+#'    \item A data frame with one row per cluster. Contains a column
+#' `   Cluster` (with the cluster number/ID) and additional columns with
+#'     counts of occurrences for each unique class (with
+#'     names taken either from the unique class values in
+#' `   class_counts$Class` or from the column names of `class_counts`),
+#'     plus columns with the class proportions in each cluster.
+#'    \item A vector with the total number of observations in each
+#'    cluster
+#'    \item A vector with the proportions of each class in the data.
+#' }
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
@@ -54,5 +62,14 @@ consolidate_class_counts <- function(clusters, class_counts){
       dplyr::summarise(across(everything(), ~sum(.x)))
   }
 
-  return(X)
+  cluster.sizes <- rowSums(X[, -1])
+  class.balance <- colSums(X[, -1]) / sum(X[, -1])
+
+  tmp <- X[, -1] / rowSums(X[ ,-1])
+  names(tmp) <- gsub("Class", "Prop", names(tmp))
+  X <- cbind(X, tmp)
+
+  return(list(class_counts  = X,
+              cluster_sizes = cluster.sizes,
+              class_balance = class.balance))
 }
