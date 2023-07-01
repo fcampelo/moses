@@ -25,7 +25,7 @@
 #' `   class_counts$Class` or from the column names of `class_counts`),
 #'     plus columns with the class proportions in each cluster and a
 #'     column with the total cluster size.
-#'    \item A vector with the proportions of each class in the data.
+#'    \item A data frame with the proportions of each class in the data.
 #' }
 #'
 #' @importFrom dplyr %>%
@@ -89,5 +89,5 @@ consolidate_class_counts <- function(clusters, class_counts){
   X$Size <- rowSums(X[, grep("Class\\.", names(X))])
 
   return(list(class_counts  = X,
-              class_balance = class.balance))
+              class_balance = as.data.frame(t(class.balance))))
 }

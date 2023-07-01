@@ -64,7 +64,7 @@
       "Version": "3.17.1",
       "Source": "Bioconductor",
       "git_url": "https://git.bioconductor.org/packages/BiocVersion",
-      "git_branch": "RELEASE_3_17",
+      "git_branch": "master",
       "git_last_commit": "a2d0c4c",
       "git_last_commit_date": "2022-11-02",
       "Requirements": [

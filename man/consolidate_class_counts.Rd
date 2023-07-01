@@ -21,13 +21,36 @@ Note that in the second case there should be no other columns except `ID` and
 the class columns. See "Examples".}
 }
 \value{
-A data frame with one row per cluster, a `Cluster` column and
-additional columns with counts of occurrences for each unique class (with
-names taken either from the unique class values in `class_counts$Class`
-or from the column names of `class_counts`).
+A list object containing:
+\itemize{
+   \item A data frame with one row per cluster. Contains a column
+`   Cluster` (with the cluster number/ID) and additional columns with
+    counts of occurrences for each unique class (with
+    names taken either from the unique class values in
+`   class_counts$Class` or from the column names of `class_counts`),
+    plus columns with the class proportions in each cluster and a
+    column with the total cluster size.
+   \item A data frame with the proportions of each class in the data.
+}
 }
 \description{
 This function consolidates the output of [extract_clusters()] or
 [extract_cdhit_clusters()] with data related to the count of class examples
 to be associated with each entry.
+}
+\examples{
+\dontrun{
+library(moses)
+
+# using any fasta file.
+x <- calc_seq_dissimilarities(seqfile = "diamond/bfv_proteins.fa",
+                              aligner = "SW")
+cl <- extract_clusters(x$diss_matrix)
+
+epits <- readRDS("diamond/bfv_peptides.rds")
+
+cc <- consolidate_class_counts(cl$clusters, epits)
+}
+
+
 }

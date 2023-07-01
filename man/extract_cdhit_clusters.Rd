@@ -10,7 +10,7 @@ extract_cdhit_clusters(
   diss_threshold = 0.3,
   vrb = TRUE,
   ncpus = 1,
-  par.list = list(kmerSize = NULL, min_length = 8, s = , G = 1)
+  par.list = list(kmerSize = NULL, min_length = 8, s = 1, G = 1)
 )
 }
 \arguments{
