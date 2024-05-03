@@ -9,13 +9,13 @@ scalar_objective_function(
   class_counts,
   target_proportions,
   weights = 1,
-  rho = 1e-06,
+  rho = 0.01,
   class_balance = NULL
 )
 }
 \arguments{
-\item{alloc_vector}{vector containing the allocation information for
-each cluster of observations. Must be a vector of
+\item{alloc_vector}{vector containing the allocation information
+for each cluster of observations. Must be a vector of
 length `nrow(class_counts)`. Each position __i__ should contain
 an integer between 1 and __nsplits__ indicating the split number to
 which the __i__-th cluster is allocated.}
