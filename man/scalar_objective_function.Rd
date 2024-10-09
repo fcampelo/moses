@@ -62,7 +62,7 @@ These three objective functions are aggregated using the augmented
 Tchebycheff scalarisation function,
 
 $$
-f_{AT} = \max_\ell\left{w_\ell f_\ell(x)\right} + \rho\sum_{\ell}w_\ell f_\ell(x)
+f_{AT} = \\max_\\ell\\left{w_\\ell f_\\ell(x)\\right} + \\rho\\sum_{\\ell}w_\\ell f_\\ell(x)
 $$
 
 where $w$ represent the weights provided by the user, and $\rho$ is a small

@@ -1,7 +1,7 @@
 #' Consolidate ID, cluster and class count data
 #'
 #' This function consolidates the output of [extract_clusters()] or
-#' [extract_cdhit_clusters()] with data related to the count of class examples
+#' [extract_clusters_cdhit()] with data related to the count of class examples
 #' to be associated with each entry.
 #'
 #' @param clusters data frame containing entry IDs (column `ID`) and their
@@ -37,14 +37,17 @@
 #' \dontrun{
 #' library(moses)
 #'
-#' # using any fasta file.
-#' x <- calc_seq_dissimilarities(seqfile = "diamond/bfv_proteins.fa",
-#'                               aligner = "SW")
-#' cl <- extract_clusters(x$diss_matrix)
+#' fpath1 <- system.file("diamond", "bfv_proteins.fa", package="moses")
+#' fpath2 <- system.file("diamond", "bfv_peptides.rds", package="moses")
 #'
-#' epits <- readRDS("diamond/bfv_peptides.rds")
+#' # Calculate clusters using sequence data
+#' mycl <- extract_clusters_cdhit(seqfile = fpath1, diss_threshold = 0.2)
 #'
-#' cc <- consolidate_class_counts(cl$clusters, epits)
+#' # Load data frame with classes
+#' X    <- readRDS("diamond/bfv_peptides.rds")
+#'
+#' # Consolidate class counts
+#' cc <- consolidate_class_counts(mycl$clusters, X)
 #' }
 #'
 #'
@@ -74,7 +77,7 @@ consolidate_class_counts <- function(clusters, class_counts){
   } else {
     X <- X %>%
       dplyr::group_by(dplyr::across(dplyr::all_of(c("Cluster")))) %>%
-      dplyr::summarise(across(everything(), ~sum(.x))) %>%
+      dplyr::summarise(dplyr::across(dplyr::everything(), ~sum(.x))) %>%
       dplyr::rename_with(.cols = !dplyr::starts_with("Cluster"),
                          .fn = ~paste0("Class.", .x))
 

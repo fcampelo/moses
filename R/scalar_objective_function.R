@@ -24,7 +24,7 @@
 #' Tchebycheff scalarisation function,
 #'
 #' $$
-#' f_{AT} = \max_\ell\left{w_\ell f_\ell(x)\right} + \rho\sum_{\ell}w_\ell f_\ell(x)
+#' f_{AT} = \\max_\\ell\\left{w_\\ell f_\\ell(x)\\right} + \\rho\\sum_{\\ell}w_\\ell f_\\ell(x)
 #' $$
 #'
 #' where $w$ represent the weights provided by the user, and $\rho$ is a small
@@ -115,7 +115,7 @@ scalar_objective_function <- function(alloc_vector,
                                       max(Hk)),
                            second = c(mean(Delta.Sk),
                                       mean(Delta.Bk.avg),
-                                      median(Hk)))
+                                      stats::median(Hk)))
     y1 <- max(weights * obj.funs$prime) +
       rho * sum((weights * obj.funs$prime))
     y2 <- max(weights * obj.funs$second) +

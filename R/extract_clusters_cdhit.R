@@ -24,10 +24,22 @@
 #' CDHIT) and `clusters` (a data frame
 #' with cluster memberships at the dissimilarity level `diss_threshold`).
 #'
-#'
 #' @export
 #'
-extract_cdhit_clusters <- function(X = NULL,
+#' @examples
+#'
+#' library(moses)
+#'
+#' # load data file
+#' fpath <- system.file("extdata", "some_prots.rds", package="moses")
+#' X <- readRDS(fpath)
+#' mycl <- extract_clusters_cdhit(X)
+#'
+#' using a fasta file directly
+#' fpath <- system.file("diamond", "bfv_proteins.fa", package="moses")
+#' mycl <- extract_clusters_cdhit(seqfile = fpath, diss_threshold = 0.2)
+#'
+extract_clusters_cdhit <- function(X = NULL,
                                    seqfile = NULL,
                                    diss_threshold = .3,
                                    vrb = TRUE,

@@ -35,7 +35,7 @@ A list object containing:
 }
 \description{
 This function consolidates the output of [extract_clusters()] or
-[extract_cdhit_clusters()] with data related to the count of class examples
+[extract_clusters_cdhit()] with data related to the count of class examples
 to be associated with each entry.
 }
 \examples{
