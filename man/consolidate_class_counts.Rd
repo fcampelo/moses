@@ -2,13 +2,13 @@
 % Please edit documentation in R/consolidate_class_counts.R
 \name{consolidate_class_counts}
 \alias{consolidate_class_counts}
-\title{Consolidate ID, cluster and class count data}
+\title{Consolidate ID, group and class count data}
 \usage{
-consolidate_class_counts(clusters, class_counts)
+consolidate_class_counts(groups, class_counts)
 }
 \arguments{
-\item{clusters}{data frame containing entry IDs (column `ID`) and their
-respective cluster identifiers (column `Cluster`).}
+\item{groups}{data frame containing entry IDs (column `ID`) and their
+respective group identifiers (column `Cluster`).}
 
 \item{class_counts}{data frame containing entry IDs (column `ID` - may
 contain repeated values, in which case they are aggregated using the sum of
@@ -21,17 +21,10 @@ Note that in the second case there should be no other columns except `ID` and
 the class columns. See "Examples".}
 }
 \value{
-A list object containing:
-\itemize{
-   \item A data frame with one row per cluster. Contains a column
-`   Cluster` (with the cluster number/ID) and additional columns with
-    counts of occurrences for each unique class (with
-    names taken either from the unique class values in
-`   class_counts$Class` or from the column names of `class_counts`),
-    plus columns with the class proportions in each cluster and a
-    column with the total cluster size.
-   \item A data frame with the proportions of each class in the data.
-}
+A matrix with one row per group, and the counts of each unique class
+   (with names taken either from the unique class values in
+   ` class_counts$Class` or from the column names of `class_counts`) as
+   columns.
 }
 \description{
 This function consolidates the output of [extract_clusters()] or
@@ -42,15 +35,17 @@ to be associated with each entry.
 \dontrun{
 library(moses)
 
-# using any fasta file.
-x <- calc_seq_dissimilarities(seqfile = "diamond/bfv_proteins.fa",
-                              aligner = "SW")
-cl <- extract_clusters(x$diss_matrix)
+fpath1 <- system.file("diamond", "bfv_proteins.fa", package="moses")
+fpath2 <- system.file("diamond", "bfv_peptides.rds", package="moses")
 
-epits <- readRDS("diamond/bfv_peptides.rds")
+# Calculate clusters using sequence data
+mycl <- extract_clusters_cdhit(seqfile = fpath1, diss_threshold = 0.2)
 
-cc <- consolidate_class_counts(cl$clusters, epits)
+# Load data frame with classes
+df <- readRDS(fpath2)
+
+# Consolidate class counts
+C <- consolidate_class_counts(mycl$clusters, df)
 }
-
 
 }

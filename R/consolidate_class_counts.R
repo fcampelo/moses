@@ -1,11 +1,11 @@
-#' Consolidate ID, cluster and class count data
+#' Consolidate ID, group and class count data
 #'
 #' This function consolidates the output of [extract_clusters()] or
 #' [extract_clusters_cdhit()] with data related to the count of class examples
 #' to be associated with each entry.
 #'
-#' @param clusters data frame containing entry IDs (column `ID`) and their
-#' respective cluster identifiers (column `Cluster`).
+#' @param groups data frame containing entry IDs (column `ID`) and their
+#' respective group identifiers (column `Cluster`).
 #' @param class_counts data frame containing entry IDs (column `ID` - may
 #' contain repeated values, in which case they are aggregated using the sum of
 #' each class label) and either:
@@ -16,17 +16,10 @@
 #' Note that in the second case there should be no other columns except `ID` and
 #' the class columns. See "Examples".
 
-#' @return A list object containing:
-#' \itemize{
-#'    \item A data frame with one row per cluster. Contains a column
-#' `   Cluster` (with the cluster number/ID) and additional columns with
-#'     counts of occurrences for each unique class (with
-#'     names taken either from the unique class values in
-#' `   class_counts$Class` or from the column names of `class_counts`),
-#'     plus columns with the class proportions in each cluster and a
-#'     column with the total cluster size.
-#'    \item A data frame with the proportions of each class in the data.
-#' }
+#' @return A matrix with one row per group, and the counts of each unique class
+#'    (with names taken either from the unique class values in
+#'    ` class_counts$Class` or from the column names of `class_counts`) as
+#'    columns.
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
@@ -44,27 +37,27 @@
 #' mycl <- extract_clusters_cdhit(seqfile = fpath1, diss_threshold = 0.2)
 #'
 #' # Load data frame with classes
-#' X    <- readRDS("diamond/bfv_peptides.rds")
+#' df <- readRDS(fpath2)
 #'
 #' # Consolidate class counts
-#' cc <- consolidate_class_counts(mycl$clusters, X)
+#' C <- consolidate_class_counts(mycl$clusters, df)
 #' }
 #'
-#'
-consolidate_class_counts <- function(clusters, class_counts){
+
+consolidate_class_counts <- function(groups, class_counts){
 
   # =======================================================================
   # Sanity checks and initial definitions
 
-  assertthat::assert_that(is.data.frame(clusters),
-                          all(c("ID", "Cluster") %in% names(clusters)),
+  assertthat::assert_that(is.data.frame(groups),
+                          all(c("ID", "Cluster") %in% names(groups)),
                           is.data.frame(class_counts),
                           "ID" %in% names(class_counts))
 
 
   # =======================================================================
 
-  X <- dplyr::left_join(clusters, class_counts, by = "ID")
+  X <- dplyr::left_join(groups, class_counts, by = "ID")
 
   if("Class" %in% names(class_counts)){
     X <- X %>%
@@ -85,12 +78,10 @@ consolidate_class_counts <- function(clusters, class_counts){
 
   class.balance <- colSums(X[, grep("Class", names(X))]) / sum(X[, grep("Class", names(X))])
 
-  tmp <- X[, -1] / rowSums(X[ ,-1])
-  names(tmp) <- gsub("Class", "Prop", names(tmp))
-  X <- cbind(X, tmp)
+  # tmp <- X[, -1] / rowSums(X[ ,-1])
+  # names(tmp) <- gsub("Class", "Prop", names(tmp))
+  # X <- cbind(X, tmp)
 
-  X$Size <- rowSums(X[, grep("Class\\.", names(X))])
-
-  return(list(class_counts  = X,
-              class_balance = as.data.frame(t(class.balance))))
+  return(as.matrix(X[, -1]))
 }
+
