@@ -1,9 +1,9 @@
 #' @export
-calculate_objective_functions <- function(X, C, delta){
+calc_objective_functions <- function(X, C, delta){
 
-  Dsize <- calculate_size_deviation(X, C, delta)
-  Dbal  <- calculate_balance_deviation(X, C)
-  Dhomo <- calculate_split_homogeneity(X)
+  Dsize <- calc_size_deviation(X, C, delta)
+  Dbal  <- calc_balance_deviation(X, C)
+  Dhomo <- calc_split_homogeneity(X)
 
   # Size deviation objective functions
   f1  <- max(Dsize)

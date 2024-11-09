@@ -20,9 +20,22 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#'
 #' library(moses)
 #'
+#' # Example 1
+#' C <- matrix(c(10, 10, 1, 5, 1, 4, 5, 15, 0),
+#'             nrow = 3, byrow = TRUE)
+#'
+#' delta <- c(.75, .25)
+#'
+#' X <- matrix(c(0, 0, 1, 1, 1, 0),
+#'            nrow = 2, byrow = TRUE)
+#'
+#' calc_size_deviation(X, C, delta)
+#'
+#' \dontrun{
+#' # Example 2
 #' fpath1 <- system.file("diamond", "bfv_proteins.fa", package="moses")
 #' fpath2 <- system.file("diamond", "bfv_peptides.rds", package="moses")
 #'
@@ -44,11 +57,11 @@
 #'            ncol = nrow(C))
 #' for (i in 1:ncol(X)) X[sample.int(nrow(X), 1), i] <- 1
 #'
-#' calculate_size_deviation(X, C, delta)
+#' calc_size_deviation(X, C, delta)
 #' }
 #'
 
-calculate_size_deviation <- function(X, C, delta){
+calc_size_deviation <- function(X, C, delta){
   # =======================================================================
   # Sanity checks and initial definitions
 
@@ -70,7 +83,7 @@ calculate_size_deviation <- function(X, C, delta){
   M  <- X %*% C
   Mtilde <- M[order(rowSums(M), decreasing = TRUE), ]
 
-  Delta_s <- abs(delta - rowSums(Mtilde) / sum(Mtilde))
+  Delta_s <- abs(delta - rowSums(Mtilde) / sum(Mtilde + 1e-9))
 
   return(Delta_s)
 

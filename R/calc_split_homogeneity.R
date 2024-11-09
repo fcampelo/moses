@@ -5,7 +5,7 @@
 #' that each group must be allocated to a single split, i.e.,
 #' colSums(X) must be a vector of ones.
 #'
-#' @return @return A vector containing the normalized homogeneity scores of
+#' @return A vector containing the normalized homogeneity scores of
 #' each split.
 #'
 #' @importFrom dplyr %>%
@@ -14,21 +14,18 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#'
 #' library(moses)
 #'
-#' # Build example with 3 splits, 6 groups
+#' X <- matrix(c(1, 0, 0, 0, 0, 0,
+#'               0, 1, 1, 0, 0, 0,
+#'               0, 0, 0, 1, 1, 1),
+#'            nrow = 3, byrow = TRUE)
 #'
-#' X = matrix(0, nrow = 3, ncol = 6)
-#' X[1, 1] <- 1
-#' X[2, 2:3] <- 1
-#' X[3, 4:6] <- 1
-#'
-#' calculate_split_homogeneity(X)
-#' }
+#' calc_split_homogeneity(X)
 #'
 
-calculate_split_homogeneity <- function(X, C){
+calc_split_homogeneity <- function(X){
   # =======================================================================
   # Sanity checks and initial definitions
 
