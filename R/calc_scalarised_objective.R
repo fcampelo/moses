@@ -19,6 +19,7 @@
 #'    diversity) the splits are.
 #' }
 #'
+#'
 #' These three objective functions are aggregated using the augmented
 #' Tchebycheff scalarisation function,
 #'
@@ -51,9 +52,57 @@
 #' objectives. Weights are scaled proportionally if they don't add to 1.
 #' @param rho small positive value for augmented Tchebycheff scalarisation.
 #' @param which version of the objectives should be evaluated? Accepts
-#' "primary", "secondary" or "both".
+#' "primary", "secondary", "both" (vector with primary and secondary values), or
+#' "raw" (matrix of all individual primary and secondary objective functions).
+#'
+#' @seealso `calc_size_deviation`, `calc_balance_deviation`, `calc_split_homogeneity`
 #'
 #' @export
+#'
+#' @examples
+#'
+#' library(moses)
+#'
+#' # Example 1
+#' C <- matrix(c(10, 10, 1, 5, 1, 4, 5, 15, 0),
+#'             nrow = 3, byrow = TRUE)
+#'
+#' delta <- c(.75, .25)
+#'
+#' X <- matrix(c(0, 0, 1, 1, 1, 0),
+#'            nrow = 2, byrow = TRUE)
+#'
+#' w = c(.4, .4, .2)
+#'
+#' calc_scalarised_objective(X, C, delta, w)
+#'
+#' \dontrun{
+#' # Example 2
+#' fpath1 <- system.file("diamond", "bfv_proteins.fa", package="moses")
+#' fpath2 <- system.file("diamond", "bfv_peptides.rds", package="moses")
+#'
+#' # Calculate clusters using sequence data
+#' mycl <- extract_clusters_cdhit(seqfile = fpath1, diss_threshold = 0.2)
+#'
+#' # Load data frame with classes
+#' df <- readRDS(fpath2)
+#'
+#' # Consolidate class counts
+#' C <- consolidate_class_counts(mycl$clusters, df)
+#'
+#' # Desired allocation proportions
+#' delta <- c(.6, .2, .2)
+#'
+#' w = c(.5, .4, .1)
+#'
+#' # Generate a random allocation matrix
+#' X = matrix(0,
+#'            nrow = length(delta),
+#'            ncol = nrow(C))
+#' for (i in 1:ncol(X)) X[sample.int(nrow(X), 1), i] <- 1
+#'
+#' calc_scalarised_objective(X, C, delta, w, which = "both")
+#' }
 
 calc_scalarised_objective <- function(X, C, delta, w, rho = 1e-4, which = "primary"){
 
@@ -61,7 +110,10 @@ calc_scalarised_objective <- function(X, C, delta, w, rho = 1e-4, which = "prima
   pri   <- max(w * Fvals$Primary) + rho * sum(w * Fvals$Primary)
   sec   <- max(w * Fvals$Secondary) + rho * sum(w * Fvals$Secondary)
 
-  if (which == "primary") return(pri)
-  if (which == "secondary") return(sec)
-  return(c(pri, sec))
+  if (which == "primary") toRet <- pri
+  if (which == "secondary") toRet <- sec
+  if (which == "both") toRet <- c(pri, sec)
+  if (which == "raw") toRet <- Fvals
+
+  return(toRet)
 }

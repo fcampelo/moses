@@ -70,7 +70,7 @@ calc_balance_deviation <- function(X, C){
   M      <- X %*% C
   Mtilde <- M[order(rowSums(M), decreasing = TRUE), ]
 
-  pitilde <- Mtilde / matrix(rowSums(Mtilde), nrow = nrow(M), ncol = ncol(M), byrow = FALSE)
+  pitilde <- Mtilde / (1e-9 + matrix(rowSums(Mtilde), nrow = nrow(M), ncol = ncol(M), byrow = FALSE))
   return(abs(matrix(pi, nrow = nrow(M), ncol = ncol(M), byrow = TRUE) - pitilde))
 
 

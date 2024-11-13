@@ -4,13 +4,17 @@
 \alias{calc_split_homogeneity}
 \title{Calculate split homogeneity for all splits given an allocation matrix.}
 \usage{
-calc_split_homogeneity(X)
+calc_split_homogeneity(X, C)
 }
 \arguments{
 \item{X}{matrix of binary allocation variables. Each position `x_{ki}`
 indicates the allocation or not of the i-th group to the k-th split. Note
 that each group must be allocated to a single split, i.e.,
 colSums(X) must be a vector of ones.}
+
+\item{C}{matrix of class counts per group. Commonly calculated using
+[consolidate_class_counts()]. Each position `c_{ij}` contains
+the number of examples of the j-th Class contained in the i-th group.}
 }
 \value{
 A vector containing the normalized homogeneity scores of

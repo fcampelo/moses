@@ -11,6 +11,7 @@
 #' are always created in decreasing order of (desired) size, so it is useful
 #' (but not mandatory) to pass a vector delta that is already sorted in
 #' decreasing order, to prevent later confusion.
+#' @param beta penalization constant for splits above the desired size.
 #'
 #' @return A vector containing the normalized size deviation scores of each split.
 #'
@@ -61,7 +62,7 @@
 #' }
 #'
 
-calc_size_deviation <- function(X, C, delta){
+calc_size_deviation <- function(X, C, delta, beta = 5){
   # =======================================================================
   # Sanity checks and initial definitions
 
@@ -83,7 +84,11 @@ calc_size_deviation <- function(X, C, delta){
   M  <- X %*% C
   Mtilde <- M[order(rowSums(M), decreasing = TRUE), ]
 
-  Delta_s <- abs(delta - rowSums(Mtilde) / sum(Mtilde + 1e-9))
+  deltahat <- rowSums(Mtilde) / sum(Mtilde + 1e-9)
+
+  Delta_s <- ifelse(deltahat <= delta,
+                    1 - deltahat/delta,
+                    beta * (deltahat - delta) / (1 - delta))
 
   return(Delta_s)
 

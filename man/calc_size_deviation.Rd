@@ -4,7 +4,7 @@
 \alias{calc_size_deviation}
 \title{Calculate size deviation for all splits given an allocation matrix}
 \usage{
-calc_size_deviation(X, C, delta)
+calc_size_deviation(X, C, delta, beta = 5)
 }
 \arguments{
 \item{X}{matrix of binary allocation variables. Each position `x_{ki}`
@@ -20,6 +20,8 @@ the number of examples of the j-th Class contained in the i-th group.}
 are always created in decreasing order of (desired) size, so it is useful
 (but not mandatory) to pass a vector delta that is already sorted in
 decreasing order, to prevent later confusion.}
+
+\item{beta}{penalization constant for splits above the desired size.}
 }
 \value{
 A vector containing the normalized size deviation scores of each split.

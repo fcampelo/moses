@@ -3,7 +3,6 @@
 export(calc_balance_deviation)
 export(calc_biostrings_alignment)
 export(calc_diamond_alignment)
-export(calc_objective_functions)
 export(calc_scalarised_objective)
 export(calc_seq_dissimilarities)
 export(calc_size_deviation)
