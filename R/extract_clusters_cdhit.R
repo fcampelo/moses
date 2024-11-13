@@ -28,6 +28,7 @@
 #'
 #' @examples
 #'
+#' \dontrun{
 #' library(moses)
 #'
 #' # load data file
@@ -35,10 +36,11 @@
 #' X <- readRDS(fpath)
 #' mycl <- extract_clusters_cdhit(X)
 #'
-#' using a fasta file directly
+#' # using a fasta file directly
 #' fpath <- system.file("diamond", "bfv_proteins.fa", package="moses")
 #' mycl <- extract_clusters_cdhit(seqfile = fpath, diss_threshold = 0.2)
-#'
+#'}
+
 extract_clusters_cdhit <- function(X = NULL,
                                    seqfile = NULL,
                                    diss_threshold = .3,

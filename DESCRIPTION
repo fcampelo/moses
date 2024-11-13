@@ -2,16 +2,10 @@ Package: moses
 Type: Package
 Title: Multi Objective Sequence Splitter
 Version: 0.1.1
-Date: 2024-04-28
+Date: 2024-11-13
 Authors@R: c(person("Felipe", "Campelo",
     email   = "fcampelo@gmail.com",
-    role    = c("aut", "cre")),
-    person("Francisco", "Lobo",
-    email   = "franciscolobo@gmail.com",
-    role    = c("sad")),
-    person("Elizabeth", "Wanner",
-    email   = "e.wanner1@aston.ac.uk",
-    role    = c("sad")))
+    role    = c("aut", "cre")))
 Maintainer: Felipe Campelo <fcampelo@gmail.com>
 Description: A tool for splitting sequence data (or other types of 
              potentially imbalanced data with dependence structures) 
@@ -19,16 +13,15 @@ Description: A tool for splitting sequence data (or other types of
              objectives, including split sizes, consistency of class 
              balances, and within-split diversity.
 License: GPL-2
-Depends: R (>= 4.3.0)
+Depends: R (>= 4.4.0)
 Imports: assertthat (>= 0.2.1),
-         dplyr (>= 1.1.0),
-         BiocManager (>= 1.30.20),
-         pbapply (>= 1.6.0),
+         dplyr (>= 1.1.4),
+         BiocManager (>= 1.30.25),
+         pbapply (>= 1.7.0),
          seqinr (>= 4.2.0),
-         rlang (>= 1.1.0),
-         tidyr (>= 1.3.0),
-         knitr (>= 1.40.0),
-         fastcluster (>= 1.2.3)
+         rlang (>= 1.1.4),
+         tidyr (>= 1.3.1),
+         fastcluster (>= 1.2.6)
 Suggests: Biostrings (>= 2.60.0),
           CellaRepertorium (>= 1.8.0)
 SuggestsNote:

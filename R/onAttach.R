@@ -2,7 +2,7 @@
 
   # This is just to prevent CHECK errors due to knitr not being
   # explicitly called anywhere.
-  if(FALSE) knitr::opts_chunk
+  # if(FALSE) knitr::opts_chunk
 
   tocheck <- c("Biostrings", "CellaRepertorium")
   vers    <- c('2.60.0',     '1.10.0')

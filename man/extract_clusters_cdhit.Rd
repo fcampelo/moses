@@ -47,6 +47,7 @@ details.
 }
 \examples{
 
+\dontrun{
 library(moses)
 
 # load data file
@@ -54,8 +55,8 @@ fpath <- system.file("extdata", "some_prots.rds", package="moses")
 X <- readRDS(fpath)
 mycl <- extract_clusters_cdhit(X)
 
-using a fasta file directly
+# using a fasta file directly
 fpath <- system.file("diamond", "bfv_proteins.fa", package="moses")
 mycl <- extract_clusters_cdhit(seqfile = fpath, diss_threshold = 0.2)
-
+}
 }

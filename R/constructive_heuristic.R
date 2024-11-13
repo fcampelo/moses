@@ -3,7 +3,7 @@
 #' Generates an initial allocation matrix.
 #'
 #' @param C matrix of class counts per group. Commonly calculated using
-#' [consolidate_class_counts()]. Each position `c_{ij}` contains
+#' [consolidate_class_counts()]. Each position \eqn{c_{ij}} contains
 #' the number of examples of the j-th Class contained in the i-th group.
 #' @param delta vector of desired split proportions (must add up to one). It
 #' is useful (but not mandatory) to use a vector delta that is sorted
@@ -14,7 +14,7 @@
 #' objectives. Weights are scaled proportionally if they don't add to 1.
 #' @param rho small positive value for augmented Tchebycheff scalarisation.
 #'
-#' @return Matrix of binary allocation variables. Each position `x_{ki}`
+#' @return Matrix of binary allocation variables. Each position \eqn{x_{ki}}
 #' indicates the allocation or not of the i-th group to the k-th split.
 #' **NOTE**: The allocation matrix is always returned with splits in decreasing
 #' order of size.

@@ -35,12 +35,12 @@
 #' disregard the homogeneity objective, particularly if the number of splits is relatively
 #' large (e.g., when using this function to define cross-validation folds).
 #'
-#' @param X matrix of binary allocation variables. Each position `x_{ki}`
+#' @param X matrix of binary allocation variables. Each position \eqn{x_{ki}}
 #' indicates the allocation or not of the i-th group to the k-th split. Note
 #' that each group must be allocated to a single split, i.e.,
 #' colSums(X) must be a vector of ones.
 #' @param C matrix of class counts per group. Commonly calculated using
-#' [consolidate_class_counts()]. Each position `c_{ij}` contains
+#' [consolidate_class_counts()]. Each position \eqn{c_{ij}} contains
 #' the number of examples of the j-th Class contained in the i-th group.
 #' @param delta vector of desired split proportions (must add up to one). Splits
 #' are always created in decreasing order of (desired) size, so it is useful

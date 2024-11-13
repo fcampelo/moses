@@ -70,8 +70,7 @@ for installation details.
 
 \examples{
 \dontrun{
-# using any fasta file.
-x <- calc_seq_dissimilarities(seqfile = "diamond/bfv_proteins.fa",
+x <- calc_seq_dissimilarities(seqfile = system.file("diamond", "bfv_proteins.fa", package="moses"),
                               aligner = "SW")
 }
 
