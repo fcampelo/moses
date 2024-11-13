@@ -4,7 +4,7 @@
 \alias{constructive_heuristic}
 \title{Generate an initial group allocation solution based on a greedy heuristic.}
 \usage{
-constructive_heuristic(C, delta, w, rho = 1e-04, cl = NULL)
+constructive_heuristic(C, delta, w, rho = 1e-04)
 }
 \arguments{
 \item{C}{matrix of class counts per group. Commonly calculated using
@@ -21,14 +21,52 @@ scalar value is passed then the weights are taken as equal for all
 objectives. Weights are scaled proportionally if they don't add to 1.}
 
 \item{rho}{small positive value for augmented Tchebycheff scalarisation.}
-
-\item{cl}{a cluster object, created by package `parallel` or package `snow`.
-If `NULL` the function will use the registered default cluster (or none).}
 }
 \value{
 Matrix of binary allocation variables. Each position `x_{ki}`
 indicates the allocation or not of the i-th group to the k-th split.
+**NOTE**: The allocation matrix is always returned with splits in decreasing
+order of size.
 }
 \description{
 Generates an initial allocation matrix.
+}
+\examples{
+
+library(moses)
+
+\dontrun{
+fpath1 <- system.file("diamond", "bfv_proteins.fa", package="moses")
+fpath2 <- system.file("diamond", "bfv_peptides.rds", package="moses")
+
+# Calculate clusters using sequence data
+mycl <- extract_clusters_cdhit(seqfile = fpath1, diss_threshold = 0.2)
+
+# Load data frame with classes
+df <- readRDS(fpath2)
+
+# Consolidate class counts
+C <- consolidate_class_counts(mycl$clusters, df)
+
+# Desired allocation proportions
+delta <- c(.6, .2, .2)
+
+# Objective weights
+w = c(.5, .4, .1)
+
+X <- constructive_heuristic(C, delta, w)
+
+# Check allocation:
+M <- X \%*\% C
+
+data.frame(Desired.prop = sort(delta, decreasing = TRUE),
+           Actual.prop  = rowSums(M) / sum(M),
+           Groups.per.split = rowSums(X))
+
+# Balance of data in each split
+Dbal <- cbind(data.frame(Overall = colSums(C) / sum(C)),
+              apply(M, 1, function(z) z/sum(z)))
+names(Dbal)[-1] <- paste0("Split.", names(Dbal)[-1])
+Dbal
+}
 }

@@ -13,19 +13,58 @@
 #' scalar value is passed then the weights are taken as equal for all
 #' objectives. Weights are scaled proportionally if they don't add to 1.
 #' @param rho small positive value for augmented Tchebycheff scalarisation.
-#' @param cl a cluster object, created by package `parallel` or package `snow`.
-#' If `NULL` the function will use the registered default cluster (or none).
 #'
 #' @return Matrix of binary allocation variables. Each position `x_{ki}`
 #' indicates the allocation or not of the i-th group to the k-th split.
+#' **NOTE**: The allocation matrix is always returned with splits in decreasing
+#' order of size.
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 #'
 #' @export
 #'
+#' @examples
+#'
+#' library(moses)
+#'
+#' \dontrun{
+#' fpath1 <- system.file("diamond", "bfv_proteins.fa", package="moses")
+#' fpath2 <- system.file("diamond", "bfv_peptides.rds", package="moses")
+#'
+#' # Calculate clusters using sequence data
+#' mycl <- extract_clusters_cdhit(seqfile = fpath1, diss_threshold = 0.2)
+#'
+#' # Load data frame with classes
+#' df <- readRDS(fpath2)
+#'
+#' # Consolidate class counts
+#' C <- consolidate_class_counts(mycl$clusters, df)
+#'
+#' # Desired allocation proportions
+#' delta <- c(.6, .2, .2)
+#'
+#' # Objective weights
+#' w = c(.5, .4, .1)
+#'
+#' X <- constructive_heuristic(C, delta, w)
+#'
+#' # Check allocation:
+#' M <- X %*% C
+#'
+#' data.frame(Desired.prop = sort(delta, decreasing = TRUE),
+#'            Actual.prop  = rowSums(M) / sum(M),
+#'            Groups.per.split = rowSums(X))
+#'
+#' # Balance of data in each split
+#' Dbal <- cbind(data.frame(Overall = colSums(C) / sum(C)),
+#'               apply(M, 1, function(z) z/sum(z)))
+#' names(Dbal)[-1] <- paste0("Split.", names(Dbal)[-1])
+#' Dbal
+#' }
 
-constructive_heuristic <- function(C, delta, w, rho = 1e-4, cl = NULL){
+
+constructive_heuristic <- function(C, delta, w, rho = 1e-4){
 
   # =======================================================================
   # Sanity checks and initial definitions
@@ -39,6 +78,9 @@ constructive_heuristic <- function(C, delta, w, rho = 1e-4, cl = NULL){
 
   # Force delta in decreasing order
   delta <- sort(delta, decreasing = TRUE)
+
+  # Number of possible allocations:
+  nstates <- length(delta) ^ nrow(C)
   # =======================================================================
 
   X <- matrix(0, nrow = length(delta), ncol = nrow(C))
@@ -69,44 +111,10 @@ constructive_heuristic <- function(C, delta, w, rho = 1e-4, cl = NULL){
     X[, icum] <- trials[[lb]]
   }
 
-}
+  # Return allocation matrix in decreasing order of split size
+  M <- X %*% C
+  idx <- order(rowSums(M), decreasing = TRUE)
+  X <- X[idx, ]
 
-# constructive_heuristic_old <- function(class_counts,
-#                                    target_proportions,
-#                                    weights = 1,
-#                                    rho     = 1e-2,
-#                                    class_balance = NULL){
-#
-#   class_counts <- class_counts[order(class_counts$Size,
-#                                      decreasing = TRUE), ]
-#   class_counts$Split <- NA
-#
-#   alloc <- as.data.frame(matrix(data = NA,
-#                                 nrow = nrow(class_counts),
-#                                 ncol = length(target_proportions),
-#                                 byrow = TRUE))
-#
-#   for (i in seq_along( class_counts$Cluster)){
-#     alloc[i, ] <- 1:length(target_proportions)
-#     f0 <- lapply(alloc,
-#                  scalar_objective_function,
-#                  class_counts = class_counts,
-#                  target_proportions = target_proportions,
-#                  weights = weights,
-#                  rho     = rho,
-#                  class_balance = class_balance)
-#
-#     # Extract best allocation
-#     idx <- which(sapply(f0, function(x)x$f.AT) == min(sapply(f0, function(x)x$f.AT)))
-#
-#     if (length(idx) > 1){
-#       idx2 <- which(sapply(f0[idx], function(x)x$f.AT2) == min(sapply(f0[idx], function(x)x$f.AT2)))
-#
-#       if (length(idx2) > 1) idx2 <- sample(idx2, 1)
-#
-#       idx <- idx[idx2]
-#     }
-#
-#     alloc[i, ] <- idx
-#   }
-# }
+  return(X)
+}
