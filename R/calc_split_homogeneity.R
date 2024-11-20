@@ -7,6 +7,7 @@
 #' @param C matrix of class counts per group. Commonly calculated using
 #' [consolidate_class_counts()]. Each position \eqn{c_{ij}} contains
 #' the number of examples of the j-th Class contained in the i-th group.
+#' @param delta vector of desired split proportions (must add up to one).
 #'
 #' @return A vector containing the normalized homogeneity scores of
 #' each split.
@@ -26,15 +27,21 @@
 #' X <- matrix(c(0, 0, 1, 1, 1, 0),
 #'            nrow = 2, byrow = TRUE)
 #'
-#' calc_split_homogeneity(X, C)
+#' # Desired allocation proportions
+#' delta <- c(.6, .2, .2)
+#'
+#' calc_split_homogeneity(X, C, delta)
 #'
 
-calc_split_homogeneity <- function(X, C){
+calc_split_homogeneity <- function(X, C, delta){
   # =======================================================================
   # Sanity checks and initial definitions
 
   assertthat::assert_that(is.matrix(X),
-                          all(as.vector(X) %in% c(0, 1)))
+                          all(as.vector(X) %in% c(0, 1)),
+                          is.vector(delta),
+                          is.numeric(delta),
+                          sum(delta) == 1)
 
   # =======================================================================
 

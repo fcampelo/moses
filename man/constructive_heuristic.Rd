@@ -4,7 +4,7 @@
 \alias{constructive_heuristic}
 \title{Generate an initial group allocation solution based on a greedy heuristic.}
 \usage{
-constructive_heuristic(C, delta, w, rho = 1e-04)
+constructive_heuristic(C, delta, w = c(0.5, 0.4, 0.1), X0 = NULL, rho = 1e-04)
 }
 \arguments{
 \item{C}{matrix of class counts per group. Commonly calculated using
@@ -19,6 +19,15 @@ in decreasing order, to prevent later confusion.}
 length 3 and add to 1. All weights must be non-negative. If a
 scalar value is passed then the weights are taken as equal for all
 objectives. Weights are scaled proportionally if they don't add to 1.}
+
+\item{X0}{Initial (partial) allocation. Must be a binary numerical matrix
+containing only zeroes and ones. Must have `nrow(C)` columns and `length(delta)`
+rows. Each position \eqn{x_{ki}}
+indicates the allocation (or not) of the i-th group to the k-th split.
+Each group can only be allocated to (at most) one split (i.e.,
+`colSums(X0)` \eqn{\leq 1}). The constructive heuristic will not change the
+pre-allocations provided in X0, it will only allocate the remaining groups
+to the splits.}
 
 \item{rho}{small positive value for augmented Tchebycheff scalarisation.}
 }

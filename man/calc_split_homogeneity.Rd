@@ -4,7 +4,7 @@
 \alias{calc_split_homogeneity}
 \title{Calculate split homogeneity for all splits given an allocation matrix.}
 \usage{
-calc_split_homogeneity(X, C)
+calc_split_homogeneity(X, C, delta)
 }
 \arguments{
 \item{X}{matrix of binary allocation variables. Each position \eqn{x_{ki}}
@@ -15,6 +15,8 @@ colSums(X) must be a vector of ones.}
 \item{C}{matrix of class counts per group. Commonly calculated using
 [consolidate_class_counts()]. Each position \eqn{c_{ij}} contains
 the number of examples of the j-th Class contained in the i-th group.}
+
+\item{delta}{vector of desired split proportions (must add up to one).}
 }
 \value{
 A vector containing the normalized homogeneity scores of
@@ -33,6 +35,9 @@ C <- matrix(c(10, 10, 1, 5, 1, 4, 5, 15, 0),
 X <- matrix(c(0, 0, 1, 1, 1, 0),
            nrow = 2, byrow = TRUE)
 
-calc_split_homogeneity(X, C)
+# Desired allocation proportions
+delta <- c(.6, .2, .2)
+
+calc_split_homogeneity(X, C, delta)
 
 }

@@ -12,6 +12,14 @@
 #' length 3 and add to 1. All weights must be non-negative. If a
 #' scalar value is passed then the weights are taken as equal for all
 #' objectives. Weights are scaled proportionally if they don't add to 1.
+#' @param X0 Initial (partial) allocation. Must be a binary numerical matrix
+#' containing only zeroes and ones. Must have `nrow(C)` columns and `length(delta)`
+#' rows. Each position \eqn{x_{ki}}
+#' indicates the allocation (or not) of the i-th group to the k-th split.
+#' Each group can only be allocated to (at most) one split (i.e.,
+#' `colSums(X0)` \eqn{\leq 1}). The constructive heuristic will not change the
+#' pre-allocations provided in X0, it will only allocate the remaining groups
+#' to the splits.
 #' @param rho small positive value for augmented Tchebycheff scalarisation.
 #'
 #' @return Matrix of binary allocation variables. Each position \eqn{x_{ki}}
@@ -64,7 +72,7 @@
 #' }
 
 
-constructive_heuristic <- function(C, delta, w, rho = 1e-4){
+constructive_heuristic <- function(C, delta, w = c(.5, .4, .1), X0 = NULL, rho = 1e-4){
 
   # =======================================================================
   # Sanity checks and initial definitions
@@ -74,21 +82,44 @@ constructive_heuristic <- function(C, delta, w, rho = 1e-4){
                           all(C >= 0),
                           is.vector(delta),
                           is.numeric(delta),
-                          sum(delta) == 1)
+                          sum(delta) == 1,
+                          is.numeric(w), length(w) == 3,
+                          all(w >= 0), sum(w) == 1,
+                          is.null(X0) | is.matrix(X0),
+                          is.numeric(rho), length(rho) == 1, rho > 0)
+
+
+  if(!is.null(X0)){
+    assertthat::assert_that(nrow(X0) == length(delta),
+                            ncol(X0) == nrow(C),
+                            all(X0 %in% c(0, 1)))
+    X <- X0
+  } else {
+    X <- matrix(0, nrow = length(delta), ncol = nrow(C))
+  }
 
   # Force delta in decreasing order
   delta <- sort(delta, decreasing = TRUE)
 
   # Number of possible allocations:
-  nstates <- length(delta) ^ nrow(C)
+  # nstates <- length(delta) ^ nrow(C)
   # =======================================================================
 
-  X <- matrix(0, nrow = length(delta), ncol = nrow(C))
 
   # index from largest to smallest group
   idx <- order(rowSums(C), decreasing = TRUE)
 
-  for (j in seq_along(idx)){
+  # Put pre-allocated groups at the top of the list
+  iii <- which(colSums(X) == 1)
+
+  if(length(iii) == nrow(C)){
+    warning("X0 already provides a full allocation of groups. Skipping constructive_heuristic()")
+    return(X0)
+  }
+
+  idx <- c(iii, idx[-which(idx %in% iii)])
+
+  for (j in (1+length(iii)):length(idx)){
     i    <- idx[j]
     icum <- idx[1:j]
     Ctmp <- C[icum, , drop = FALSE]
