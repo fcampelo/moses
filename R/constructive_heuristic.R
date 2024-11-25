@@ -117,7 +117,7 @@ constructive_heuristic <- function(C, delta, w = c(.5, .4, .1), X0 = NULL, rho =
     return(X0)
   }
 
-  idx <- c(iii, idx[-which(idx %in% iii)])
+  if(length(iii) > 0) idx <- c(iii, idx[-which(idx %in% iii)])
 
   for (j in (1+length(iii)):length(idx)){
     i    <- idx[j]
