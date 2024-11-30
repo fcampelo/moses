@@ -118,7 +118,7 @@ constructive_heuristic <- function(C, delta, w = c(.5, .4, .1), X0 = NULL, rho =
   if(length(iii) > 0) idx <- c(iii, idx[-which(idx %in% iii)])
 
   for (j in (1+length(iii)):length(idx)){
-    i    <- idx[j]
+    #i    <- idx[j]
     icum <- idx[1:j]
     Ctmp <- C[icum, , drop = FALSE]
     Xtmp <- X[, icum, drop = FALSE]
@@ -133,11 +133,24 @@ constructive_heuristic <- function(C, delta, w = c(.5, .4, .1), X0 = NULL, rho =
                 which = "both") %>%
       do.call(what = rbind)
 
+    # Allocation criteria:
+
+    # Smallest value of primary objective function
     lb <- which(f[, 1] == min(f[, 1]))
+
+    # Tie breaker 1: allocate to empty splits
+    if(length(lb) > 1) {
+      ff <- rowSums(Xtmp)[lb]
+      if(any(ff == 0)) lb <- lb[which(ff == 0)]
+    }
+
+    # Tie breaker 2: smallest value of secondary objective function
     if(length(lb) > 1) {
       ff <- f[lb, ]
       lb <- lb[which(ff[, 1] == min(ff[, 1]) & ff[, 2] == min(ff[, 2]))]
     }
+
+    # Tie breaker 3: random allocation
     if(length(lb) > 1) lb <- sample(lb, 1)
 
     X[, icum] <- trials[[lb]]
