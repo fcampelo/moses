@@ -16,9 +16,7 @@ is useful (but not mandatory) to use a vector delta that is sorted
 in decreasing order, to prevent later confusion.}
 
 \item{w}{vector of weights for function aggregation. Must be of
-length 3 and add to 1. All weights must be non-negative. If a
-scalar value is passed then the weights are taken as equal for all
-objectives. Weights are scaled proportionally if they don't add to 1.}
+length 3 and add to 1. All weights must be non-negative.}
 
 \item{X0}{Initial (partial) allocation. Must be a binary numerical matrix
 containing only zeroes and ones. Must have `nrow(C)` columns and `length(delta)`
