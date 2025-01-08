@@ -53,7 +53,7 @@
 #' # Objective weights
 #' w = c(.5, .4, .1)
 #'
-#' X <- constructive_heuristic(C, delta, w)
+#' X <- make_splits_constructive(C, delta, w)
 #'
 #' # Check allocation:
 #' M <- X %*% C
@@ -69,8 +69,7 @@
 #' Dbal
 #' }
 
-
-constructive_heuristic <- function(C, delta, w = c(.5, .4, .1), X0 = NULL, rho = 1e-4){
+make_splits_constructive <- function(C, delta, w = c(.5, .4, .1), X0 = NULL, rho = 1e-4){
 
   # =======================================================================
   # Sanity checks and initial definitions

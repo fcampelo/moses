@@ -28,8 +28,6 @@
 #'
 #' @export
 #'
-#' @aliases make_randomized_splits
-#'
 #' @examples
 #'
 #' library(moses)
@@ -50,7 +48,7 @@
 #' # Desired allocation proportions
 #' delta <- c(.6, .2, .2)
 #'
-#' X <- make_randomised_splits(C, delta, w)
+#' X <- make_splits_rand_refine(C, delta)
 #'
 #' # Check allocation:
 #' M <- X %*% C
@@ -67,7 +65,7 @@
 #' }
 
 
-make_randomised_splits <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter = 100){
+make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter = 100){
 
   # =======================================================================
   # Sanity checks and initial definitions
@@ -116,23 +114,32 @@ make_randomised_splits <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter
 
   # Extract candidate splitting info and evaluation
   spleva <- spliteval(Cdf, delta, w)
+
+  # Split with largest deviation from desired size/balance
+  Erridx <- order(spleva$Error, decreasing = TRUE)
+
+  # Is the worst-case split too big or too small?
+  direction <- sign(spleva$Size.dev[Erridx[1]])
+
   OF.track  <- spleva$Error.total
-
   for(iter in 1:maxiter){
-
-    # Split with largest deviation from desired size/balance
-    Erridx <- order(spleva$Error, decreasing = TRUE)
-
-    # Is the worst-case split too big or too small?
-    direction <- sign(spleva$Size.dev[Erridx[1]])  ###### <----- I'm working only on size. Implement stuff to deal with balance too (ignore direction, focus on groups that complement each other maybe?)
-
     toBR <- FALSE
     for (i in 1:(length(Erridx) - 1)){
       for (j in (i+1):length(Erridx)){
-        Cdf.try <- move_give(Cdf, Erridx[i], Erridx[j], direction, delta, w)
+        Cdf.try <- move_give(Cdf,
+                             Erridx[i], Erridx[j],
+                             direction, delta, w)
+
+
         if(Cdf.try$OF <= spleva$Error.total){
           Cdf <- Cdf.try$Cdf
           spleva <- spliteval(Cdf, delta, w)
+          # Extract candidate splitting info and evaluation
+          spleva <- spliteval(Cdf, delta, w)
+
+          # Split with largest deviation from desired size/balance
+          Erridx <- order(spleva$Error, decreasing = TRUE)
+
           toBR <- TRUE
           break
         }
@@ -142,95 +149,18 @@ make_randomised_splits <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter
     }
 
     OF.track  <- c(OF.track, spleva$Error.total)
-    plot(OF.track)
-    i; j
 
     if((i == length(Erridx) - 1 && j == length(Erridx))) {
       break
     }
   }
 
-
-
-
-  # Calculate split errors
-  alloc <- lapply(alloc, spliteval, w)
-  targetSplit <- order(sapply(alloc, \(x){-x$Error}))[1]
-  targetDr <- alloc[[targetSplit]]$ErrorDriver
-
-  # Sort splits by error
-  # Set split w top error as target
-  # Identify error driver and valid operations (give/exchage or take/exchange if size, give/take/exchange if balance)
-  # Select neighbourhood to explore (randomly)
-  # For each other split (in decreasing order of error):
-  # - build exploration neighbourhood
-  # - assess neighbourhood
-  # - IF (some gain) adopt best solution and break; else continue
-
-}
-
-
-# index from largest to smallest group
-idx <- order(rowSums(C), decreasing = TRUE)
-
-# Put pre-allocated groups at the top of the list
-iii <- which(colSums(X) == 1)
-
-if(length(iii) == nrow(C)){
-  warning("X0 already provides a full allocation of groups. Skipping constructive_heuristic()")
-  return(X0)
-}
-
-if(length(iii) > 0) idx <- c(iii, idx[-which(idx %in% iii)])
-
-for (j in (1+length(iii)):length(idx)){
-  #i    <- idx[j]
-  icum <- idx[1:j]
-  Ctmp <- C[icum, , drop = FALSE]
-  Xtmp <- X[, icum, drop = FALSE]
-
-  trials <- lapply(1:nrow(Xtmp),
-                   function(k, Y){Y[k, ncol(Y)] <- 1; Y},
-                   Y = Xtmp)
-
-  f <- lapply(trials,
-              calc_scalarised_objective,
-              C = Ctmp, delta = delta, w = w, rho = rho,
-              which = "both") %>%
-    do.call(what = rbind)
-
-  # Allocation criteria:
-
-  # Smallest value of primary objective function
-  lb <- which(f[, 1] == min(f[, 1]))
-
-  # Tie breaker 1: allocate to empty splits
-  if(length(lb) > 1) {
-    ff <- rowSums(Xtmp)[lb]
-    if(any(ff == 0)) lb <- lb[which(ff == 0)]
+  for (i in 1:nrow(X)){
+    X[i, which(Cdf$Split == i)] <- 1
   }
 
-  # Tie breaker 2: smallest value of secondary objective function
-  if(length(lb) > 1) {
-    ff <- f[lb, ]
-    lb <- lb[which(ff[, 1] == min(ff[, 1]) & ff[, 2] == min(ff[, 2]))]
-  }
-
-  # Tie breaker 3: random allocation
-  if(length(lb) > 1) lb <- sample(lb, 1)
-
-  X[, icum] <- trials[[lb]]
+  return(X)
 }
-
-# Return allocation matrix in decreasing order of split size
-M <- X %*% C
-idx <- order(rowSums(M), decreasing = TRUE)
-X <- X[idx, ]
-
-return(X)
-}
-
-
 
 calcsplitsummary <- function(Cdf){
   Cdf %>%
@@ -238,8 +168,6 @@ calcsplitsummary <- function(Cdf){
     dplyr::summarise(across(starts_with("class"), sum), .groups = "drop") %>%
     dplyr::mutate(Size = rowSums(across(starts_with("class"))))
 }
-
-
 
 spliteval <- function(Cdf, delta, w){
   splsum <- calcsplitsummary(Cdf)
