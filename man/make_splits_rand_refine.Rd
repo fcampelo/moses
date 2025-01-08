@@ -22,6 +22,13 @@ indicates the allocation (or not) of the i-th group to the k-th split.
 Each group can only be allocated to (at most) one split (i.e.,
 `colSums(X0)` \eqn{\leq 1}). Allocations provided in X0 are maintained in the
 final solution returned.}
+
+\item{w}{vector of weights for function aggregation. Must be of
+length 2 and add to 1. All weights must be non-negative. `w[1]` represents the
+relative importance of the split sizes and `w[2]` that of maintaining a
+generally similar class balance in the splits.}
+
+\item{maxiter}{integer; maximum number or refinement iterations.}
 }
 \value{
 Matrix of binary allocation variables. Each position \eqn{x_{ki}}
@@ -51,7 +58,7 @@ df <- readRDS(fpath2)
 # Consolidate class counts
 C <- consolidate_class_counts(mycl$clusters, df)
 
-# Desired allocation proportions
+# Desired allocation proportions (train-validation-test)
 delta <- c(.6, .2, .2)
 
 X <- make_splits_rand_refine(C, delta)
@@ -68,5 +75,9 @@ Dbal <- cbind(data.frame(Overall = colSums(C) / sum(C)),
               apply(M, 1, function(z) z/sum(z)))
 names(Dbal)[-1] <- paste0("Split.", names(Dbal)[-1])
 Dbal
+
+# Desired allocation proportions (5-fold CV folds + test)
+delta <- c(rep(.16, 5), .2)
+X <- make_splits_rand_refine(C, delta, w = c(.8, .2))
 }
 }

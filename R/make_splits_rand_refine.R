@@ -10,6 +10,11 @@
 #' @param delta vector of desired split proportions (must add up to one). It
 #' is useful (but not mandatory) to use a vector delta that is sorted
 #' in decreasing order, to prevent later confusion.
+#' @param w vector of weights for function aggregation. Must be of
+#' length 2 and add to 1. All weights must be non-negative. `w[1]` represents the
+#' relative importance of the split sizes and `w[2]` that of maintaining a
+#' generally similar class balance in the splits.
+#' @param maxiter integer; maximum number or refinement iterations.
 #' @param X0 Initial (partial) allocation. Must be a binary numerical matrix
 #' containing only zeroes and ones. Must have `nrow(C)` columns and `length(delta)`
 #' rows. Each position \eqn{x_{ki}}
@@ -45,7 +50,7 @@
 #' # Consolidate class counts
 #' C <- consolidate_class_counts(mycl$clusters, df)
 #'
-#' # Desired allocation proportions
+#' # Desired allocation proportions (train-validation-test)
 #' delta <- c(.6, .2, .2)
 #'
 #' X <- make_splits_rand_refine(C, delta)
@@ -62,10 +67,14 @@
 #'               apply(M, 1, function(z) z/sum(z)))
 #' names(Dbal)[-1] <- paste0("Split.", names(Dbal)[-1])
 #' Dbal
+#'
+#' # Desired allocation proportions (5-fold CV folds + test)
+#' delta <- c(rep(.16, 5), .2)
+#' X <- make_splits_rand_refine(C, delta, w = c(.8, .2))
 #' }
 
 
-make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter = 100){
+make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter = 20){
 
   # =======================================================================
   # Sanity checks and initial definitions
@@ -131,7 +140,7 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxite
                              direction, delta, w)
 
 
-        if(Cdf.try$OF <= spleva$Error.total){
+        if(Cdf.try$OF < spleva$Error.total){
           Cdf <- Cdf.try$Cdf
           spleva <- spliteval(Cdf, delta, w)
           # Extract candidate splitting info and evaluation
@@ -140,6 +149,9 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxite
           # Split with largest deviation from desired size/balance
           Erridx <- order(spleva$Error, decreasing = TRUE)
 
+          # Track progress
+          OF.track  <- c(OF.track, spleva$Error.total)
+
           toBR <- TRUE
           break
         }
@@ -147,8 +159,6 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxite
 
       if(toBR) break
     }
-
-    OF.track  <- c(OF.track, spleva$Error.total)
 
     if((i == length(Erridx) - 1 && j == length(Erridx))) {
       break
@@ -159,14 +169,16 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxite
     X[i, which(Cdf$Split == i)] <- 1
   }
 
+  attr(X, "opt.history") <- OF.track
+  attr(X, "split.eval")  <- spleva
   return(X)
 }
 
 calcsplitsummary <- function(Cdf){
   Cdf %>%
-    dplyr::group_by(Split) %>%
-    dplyr::summarise(across(starts_with("class"), sum), .groups = "drop") %>%
-    dplyr::mutate(Size = rowSums(across(starts_with("class"))))
+    dplyr::group_by(dplyr::across(dplyr::all_of("Split"))) %>%
+    dplyr::summarise(dplyr::across(dplyr::starts_with("class"), sum), .groups = "drop") %>%
+    dplyr::mutate(Size = rowSums(dplyr::across(dplyr::starts_with("class"))))
 }
 
 spliteval <- function(Cdf, delta, w){
