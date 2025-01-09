@@ -142,7 +142,7 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxite
 
         if(Cdf.try$OF < spleva$Error.total){
           Cdf <- Cdf.try$Cdf
-          spleva <- spliteval(Cdf, delta, w)
+
           # Extract candidate splitting info and evaluation
           spleva <- spliteval(Cdf, delta, w)
 
@@ -174,20 +174,35 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxite
   return(X)
 }
 
-calcsplitsummary <- function(Cdf){
-  Cdf %>%
+calcsplitsummary <- function(Cdf, delta){
+  summ <- Cdf %>%
     dplyr::group_by(dplyr::across(dplyr::all_of("Split"))) %>%
     dplyr::summarise(dplyr::across(dplyr::starts_with("class"), sum), .groups = "drop") %>%
     dplyr::mutate(Size = rowSums(dplyr::across(dplyr::starts_with("class"))))
+
+  # correct cases with counts of zero
+  idx <- which(!((1:length(delta)) %in% summ$Split))
+
+  if(length(idx) > 0){
+    for (i in seq_along(idx)){
+      summ <- rbind(summ, summ[1, ])
+      summ$Split[nrow(summ)] <- idx[i]
+      summ[nrow(summ), -1] <- 0
+    }
+  }
+
+  return(summ[order(summ$Split), ])
+
 }
 
 spliteval <- function(Cdf, delta, w){
-  splsum <- calcsplitsummary(Cdf)
+  splsum <- calcsplitsummary(Cdf, delta)
 
-  sizedev    <- splsum$Size/sum(splsum$Size) - delta
-  trgt.prop  <- matrix(colSums(splsum[, -c(1, ncol(splsum))]) / sum(splsum$Size),
+  sizedev    <- splsum$Size/(sum(splsum$Size)+1e-9) - delta
+  trgt.prop  <- matrix(colSums(splsum[, -c(1, ncol(splsum))]) / (sum(splsum$Size)+1e-9),
                        nrow = nrow(splsum), ncol = ncol(splsum) - 2, byrow = TRUE)
-  act.prop   <- splsum[, -c(1, ncol(splsum))] / matrix(splsum$Size, nrow = nrow(splsum), ncol = length(trgt.prop), byrow = FALSE)
+  act.prop   <- splsum[, -c(1, ncol(splsum))] / matrix(rowSums(splsum[, -c(1, ncol(splsum))]) + 1e-9,
+                                                       nrow = nrow(splsum), ncol = ncol(trgt.prop), byrow = FALSE)
   propdev    <- act.prop - trgt.prop
 
   Objs       <- data.frame(size = abs(sizedev),
