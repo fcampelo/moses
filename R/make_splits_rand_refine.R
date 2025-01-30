@@ -22,6 +22,7 @@
 #' Each group can only be allocated to (at most) one split (i.e.,
 #' `colSums(X0)` \eqn{\leq 1}). Allocations provided in X0 are maintained in the
 #' final solution returned.
+#' @param seed seed for pseudorandom number generator.
 #'
 #' @return Matrix of binary allocation variables. Each position \eqn{x_{ki}}
 #' indicates the allocation or not of the i-th group to the k-th split.
@@ -74,7 +75,8 @@
 #' }
 
 
-make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter = 20){
+make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3),
+                                    maxiter = 20, seed = NULL){
 
   # =======================================================================
   # Sanity checks and initial definitions
@@ -101,6 +103,9 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3), maxite
 
   # Force delta in decreasing order
   delta <- sort(delta, decreasing = TRUE)
+
+  # Set PRNG if needed
+  if(!is.null(seed)) set.seed(seed)
 
   # =======================================================================
 
@@ -198,7 +203,7 @@ calcsplitsummary <- function(Cdf, delta){
 spliteval <- function(Cdf, delta, w){
   splsum <- calcsplitsummary(Cdf, delta)
 
-  sizedev    <- splsum$Size/(sum(splsum$Size)+1e-9) - delta
+  sizedev    <- (splsum$Size/(sum(splsum$Size)+1e-9) - delta)/delta
   trgt.prop  <- matrix(colSums(splsum[, -c(1, ncol(splsum))]) / (sum(splsum$Size)+1e-9),
                        nrow = nrow(splsum), ncol = ncol(splsum) - 2, byrow = TRUE)
   act.prop   <- splsum[, -c(1, ncol(splsum))] / matrix(rowSums(splsum[, -c(1, ncol(splsum))]) + 1e-9,
@@ -229,16 +234,21 @@ move_give <- function(Cdf.try, s1, s2, direction, delta, w){
     target  <- s1
   }
 
-  trials <- sapply(X = isource,
-                   function(ii, target, Y, delta, w){
-                     Y$Split[ii] <- target
-                     spliteval(Y, delta, w)$Error.total
-                   },
-                   target = target, Y = Cdf.try, delta = delta, w = w)
+  if(length(isource) > 0){
+    trials <- sapply(X = isource,
+                     function(ii, target, Y, delta, w){
+                       Y$Split[ii] <- target
+                       spliteval(Y, delta, w)$Error.total
+                     },
+                     target = target, Y = Cdf.try, delta = delta, w = w)
 
-  bestmove <- isource[which.min(trials)]
-  bestOF   <- min(trials)
+    bestmove <- isource[which.min(trials)]
+    bestOF   <- min(trials)
 
-  Cdf.try$Split[bestmove] <- target
-  return(list(Cdf = Cdf.try, OF = bestOF))
+    Cdf.try$Split[bestmove] <- target
+    return(list(Cdf = Cdf.try, OF = bestOF))
+  } else {
+    return(list(Cdf = Cdf.try, OF = spliteval(Cdf.try, delta, w)$Error.total))
+  }
+
 }

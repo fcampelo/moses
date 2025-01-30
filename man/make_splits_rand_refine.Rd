@@ -4,7 +4,14 @@
 \alias{make_splits_rand_refine}
 \title{Create a randomised data split.}
 \usage{
-make_splits_rand_refine(C, delta, X0 = NULL, w = c(2/3, 1/3), maxiter = 100)
+make_splits_rand_refine(
+  C,
+  delta,
+  X0 = NULL,
+  w = c(2/3, 1/3),
+  maxiter = 20,
+  seed = NULL
+)
 }
 \arguments{
 \item{C}{matrix of class counts per group. Commonly calculated using
@@ -29,6 +36,8 @@ relative importance of the split sizes and `w[2]` that of maintaining a
 generally similar class balance in the splits.}
 
 \item{maxiter}{integer; maximum number or refinement iterations.}
+
+\item{seed}{seed for pseudorandom number generator.}
 }
 \value{
 Matrix of binary allocation variables. Each position \eqn{x_{ki}}
