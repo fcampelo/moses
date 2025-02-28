@@ -10,7 +10,8 @@ make_splits_rand_refine(
   X0 = NULL,
   w = c(2/3, 1/3),
   maxiter = 20,
-  seed = NULL
+  seed = NULL,
+  vrb = FALSE
 )
 }
 \arguments{
@@ -38,6 +39,8 @@ generally similar class balance in the splits.}
 \item{maxiter}{integer; maximum number or refinement iterations.}
 
 \item{seed}{seed for pseudorandom number generator.}
+
+\item{vrb}{logical indicating if messages should be printed.}
 }
 \value{
 Matrix of binary allocation variables. Each position \eqn{x_{ki}}

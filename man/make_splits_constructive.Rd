@@ -9,7 +9,8 @@ make_splits_constructive(
   delta,
   w = c(0.5, 0.4, 0.1),
   X0 = NULL,
-  rho = 1e-04
+  rho = 1e-04,
+  vrb = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ pre-allocations provided in X0, it will only allocate the remaining groups
 to the splits.}
 
 \item{rho}{small positive value for augmented Tchebycheff scalarisation.}
+
+\item{vrb}{logical indicating if messages should be printed.}
 }
 \value{
 Matrix of binary allocation variables. Each position \eqn{x_{ki}}

@@ -19,6 +19,7 @@
 #' pre-allocations provided in X0, it will only allocate the remaining groups
 #' to the splits.
 #' @param rho small positive value for augmented Tchebycheff scalarisation.
+#' @param vrb logical indicating if messages should be printed.
 #'
 #' @return Matrix of binary allocation variables. Each position \eqn{x_{ki}}
 #' indicates the allocation or not of the i-th group to the k-th split.
@@ -70,7 +71,8 @@
 #' }
 
 make_splits_constructive <- function(C, delta, w = c(.5, .4, .1),
-                                     X0 = NULL, rho = 1e-4){
+                                     X0 = NULL, rho = 1e-4,
+                                     vrb = FALSE){
 
   # =======================================================================
   # Sanity checks and initial definitions
@@ -111,49 +113,50 @@ make_splits_constructive <- function(C, delta, w = c(.5, .4, .1),
   iii <- which(colSums(X) == 1)
 
   if(length(iii) == nrow(C)){
-    warning("X0 already provides a full allocation of groups. Skipping constructive_heuristic()")
-    return(X0)
-  }
+    mymsg("X0 already provides a full allocation of groups. Skipping constructive_heuristic()", vrb = vrb)
+    X <- X0
+  } else {
 
-  if(length(iii) > 0) idx <- c(iii, idx[-which(idx %in% iii)])
+    if(length(iii) > 0) idx <- c(iii, idx[-which(idx %in% iii)])
 
-  for (j in (1+length(iii)):length(idx)){
-    #i    <- idx[j]
-    icum <- idx[1:j]
-    Ctmp <- C[icum, , drop = FALSE]
-    Xtmp <- X[, icum, drop = FALSE]
+    for (j in (1+length(iii)):length(idx)){
+      #i    <- idx[j]
+      icum <- idx[1:j]
+      Ctmp <- C[icum, , drop = FALSE]
+      Xtmp <- X[, icum, drop = FALSE]
 
-    trials <- lapply(1:nrow(Xtmp),
-                     function(k, Y){Y[k, ncol(Y)] <- 1; Y},
-                     Y = Xtmp)
+      trials <- lapply(1:nrow(Xtmp),
+                       function(k, Y){Y[k, ncol(Y)] <- 1; Y},
+                       Y = Xtmp)
 
-    f <- lapply(trials,
-                calc_scalarised_objective,
-                C = Ctmp, delta = delta, w = w, rho = rho,
-                which = "both") %>%
-      do.call(what = rbind)
+      f <- lapply(trials,
+                  calc_scalarised_objective,
+                  C = Ctmp, delta = delta, w = w, rho = rho,
+                  which = "both") %>%
+        do.call(what = rbind)
 
-    # Allocation criteria:
+      # Allocation criteria:
 
-    # Smallest value of primary objective function
-    lb <- which(f[, 1] == min(f[, 1]))
+      # Smallest value of primary objective function
+      lb <- which(f[, 1] == min(f[, 1]))
 
-    # Tie breaker 1: allocate to empty splits
-    if(length(lb) > 1) {
-      ff <- rowSums(Xtmp)[lb]
-      if(any(ff == 0)) lb <- lb[which(ff == 0)]
+      # Tie breaker 1: allocate to empty splits
+      if(length(lb) > 1) {
+        ff <- rowSums(Xtmp)[lb]
+        if(any(ff == 0)) lb <- lb[which(ff == 0)]
+      }
+
+      # Tie breaker 2: smallest value of secondary objective function
+      if(length(lb) > 1) {
+        ff <- f[lb, ]
+        lb <- lb[which(ff[, 1] == min(ff[, 1]) & ff[, 2] == min(ff[, 2]))]
+      }
+
+      # Tie breaker 3: random allocation
+      if(length(lb) > 1) lb <- sample(lb, 1)
+
+      X[, icum] <- trials[[lb]]
     }
-
-    # Tie breaker 2: smallest value of secondary objective function
-    if(length(lb) > 1) {
-      ff <- f[lb, ]
-      lb <- lb[which(ff[, 1] == min(ff[, 1]) & ff[, 2] == min(ff[, 2]))]
-    }
-
-    # Tie breaker 3: random allocation
-    if(length(lb) > 1) lb <- sample(lb, 1)
-
-    X[, icum] <- trials[[lb]]
   }
 
   # Return allocation matrix in decreasing order of split size

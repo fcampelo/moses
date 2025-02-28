@@ -23,6 +23,7 @@
 #' `colSums(X0)` \eqn{\leq 1}). Allocations provided in X0 are maintained in the
 #' final solution returned.
 #' @param seed seed for pseudorandom number generator.
+#' @param vrb logical indicating if messages should be printed.
 #'
 #' @return Matrix of binary allocation variables. Each position \eqn{x_{ki}}
 #' indicates the allocation or not of the i-th group to the k-th split.
@@ -76,7 +77,7 @@
 
 
 make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3),
-                                    maxiter = 20, seed = NULL){
+                                    maxiter = 20, seed = NULL, vrb = FALSE){
 
   # =======================================================================
   # Sanity checks and initial definitions
@@ -101,83 +102,97 @@ make_splits_rand_refine <- function(C, delta, X0 = NULL, w = c(2/3, 1/3),
 
   vargroups <- which(colSums(X) == 0)
 
-  # Force delta in decreasing order
-  delta <- sort(delta, decreasing = TRUE)
+  if(length(vargroups) == 0){
+    mymsg("All groups are already allocated to a split.", vrb = vrb)
+  } else {
 
-  # Set PRNG if needed
-  if(!is.null(seed)) set.seed(seed)
+    # Force delta in decreasing order
+    delta <- sort(delta, decreasing = TRUE)
 
-  # =======================================================================
+    # Set PRNG if needed
+    if(!is.null(seed)) set.seed(seed)
 
-  # Initialise allocation list
-  alloc <- apply(X, 2, \(x) {
-    ii <- which(x == 1)
-    if(length(ii) == 0) ii <- NA
-    ii})
+    # =======================================================================
 
-  # Complete with random allocation
-  alloc[is.na(alloc)] <- sample(1:length(delta), length(vargroups), replace = TRUE)
+    # Initialise allocation list
+    alloc <- apply(X, 2, \(x) {
+      ii <- which(x == 1)
+      if(length(ii) == 0) ii <- NA
+      ii})
 
-  # Build summary matrix of groups with allocation info
-  Cdf <- as.data.frame(C) %>%
-    dplyr::mutate(Size    = rowSums(C),
-                  ID      = 1:nrow(C),
-                  movable = (1:nrow(C)) %in% vargroups,
-                  Split   = alloc)
+    # Complete with random allocation
+    alloc[is.na(alloc)] <- sample(1:length(delta), length(vargroups), replace = TRUE)
 
-
-  # Extract candidate splitting info and evaluation
-  spleva <- spliteval(Cdf, delta, w)
-
-  # Split with largest deviation from desired size/balance
-  Erridx <- order(spleva$Error, decreasing = TRUE)
-
-  # Is the worst-case split too big or too small?
-  direction <- sign(spleva$Size.dev[Erridx[1]])
-
-  OF.track  <- spleva$Error.total
-  for(iter in 1:maxiter){
-    toBR <- FALSE
-    for (i in 1:(length(Erridx) - 1)){
-      for (j in (i+1):length(Erridx)){
-        Cdf.try <- move_give(Cdf,
-                             Erridx[i], Erridx[j],
-                             direction, delta, w)
+    # Build summary matrix of groups with allocation info
+    Cdf <- as.data.frame(C) %>%
+      dplyr::mutate(Size    = rowSums(C),
+                    ID      = 1:nrow(C),
+                    movable = (1:nrow(C)) %in% vargroups,
+                    Split   = alloc)
 
 
-        if(Cdf.try$OF < spleva$Error.total){
-          Cdf <- Cdf.try$Cdf
+    # Extract candidate splitting info and evaluation
+    spleva <- spliteval(Cdf, delta, w)
 
-          # Extract candidate splitting info and evaluation
-          spleva <- spliteval(Cdf, delta, w)
+    # Split with largest deviation from desired size/balance
+    Erridx <- order(spleva$Error, decreasing = TRUE)
 
-          # Split with largest deviation from desired size/balance
-          Erridx <- order(spleva$Error, decreasing = TRUE)
+    # Is the worst-case split too big or too small?
+    direction <- sign(spleva$Size.dev[Erridx[1]])
 
-          # Track progress
-          OF.track  <- c(OF.track, spleva$Error.total)
+    OF.track  <- spleva$Error.total
+    for(iter in 1:maxiter){
+      toBR <- FALSE
+      for (i in 1:(length(Erridx) - 1)){
+        for (j in (i+1):length(Erridx)){
+          Cdf.try <- move_give(Cdf,
+                               Erridx[i], Erridx[j],
+                               direction, delta, w)
 
-          toBR <- TRUE
-          break
+
+          if(Cdf.try$OF < spleva$Error.total){
+            Cdf <- Cdf.try$Cdf
+
+            # Extract candidate splitting info and evaluation
+            spleva <- spliteval(Cdf, delta, w)
+
+            # Split with largest deviation from desired size/balance
+            Erridx <- order(spleva$Error, decreasing = TRUE)
+
+            # Track progress
+            OF.track  <- c(OF.track, spleva$Error.total)
+
+            toBR <- TRUE
+            break
+          }
         }
+
+        if(toBR) break
       }
 
-      if(toBR) break
+      if((i == length(Erridx) - 1 && j == length(Erridx))) {
+        break
+      }
     }
 
-    if((i == length(Erridx) - 1 && j == length(Erridx))) {
-      break
+    for (i in 1:nrow(X)){
+      X[i, which(Cdf$Split == i)] <- 1
     }
+
+    attr(X, "opt.history") <- OF.track
+    attr(X, "split.eval")  <- spleva
   }
 
-  for (i in 1:nrow(X)){
-    X[i, which(Cdf$Split == i)] <- 1
-  }
-
-  attr(X, "opt.history") <- OF.track
-  attr(X, "split.eval")  <- spleva
   return(X)
 }
+
+
+
+
+
+
+
+
 
 calcsplitsummary <- function(Cdf, delta){
   summ <- Cdf %>%
